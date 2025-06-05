@@ -5,7 +5,7 @@ class Usuario(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
-    tipo = db.Column(db.String(20), default='registrado')  # o 'admin'
+    tipo = db.Column(db.String(20), default='registrado')
 
 class Pelicula(db.Model):
     id = db.Column(db.Integer, primary_key=True)
