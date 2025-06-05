@@ -4,6 +4,7 @@ from app.database import db
 from app.models import Usuario
 import jwt
 import datetime
+from functools import wraps
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -55,3 +56,34 @@ def login():
     )
 
     return jsonify({'token': token})
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            parts = request.headers['Authorization'].split()
+            if len(parts) == 2 and parts[0] == 'Bearer':
+                token = parts[1]
+
+        if not token:
+            return jsonify({'error': 'Token es requerido'}), 401
+
+        try:
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = Usuario.query.get(data['user_id'])
+        except:
+            return jsonify({'error': 'Token inválido o expirado'}), 401
+
+        return f(current_user, *args, **kwargs)
+    return decorated
+
+@bp.route('/profile', methods=['GET'])
+@token_required
+def profile(current_user):
+    return jsonify({
+        'id': current_user.id,
+        'nombre': current_user.nombre,
+        'email': current_user.email,
+        'tipo': current_user.tipo
+    })
