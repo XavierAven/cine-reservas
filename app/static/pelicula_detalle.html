@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Detalle Película</title>
+</head>
+<body>
+    <h1 id="titulo"></h1>
+    <p id="descripcion"></p>
+    <p><strong>Duración:</strong> <span id="duracion"></span> minutos</p>
+    <p><strong>Género:</strong> <span id="genero"></span></p>
+
+    <h2>Sesiones disponibles</h2>
+    <ul id="sesiones"></ul>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const peliculaId = params.get('id');
+
+        fetch(`http://68.221.131.53:5000/peliculas/detalle/${peliculaId}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('titulo').textContent = data.titulo;
+                document.getElementById('descripcion').textContent = data.descripcion;
+                document.getElementById('duracion').textContent = data.duracion;
+                document.getElementById('genero').textContent = data.genero;
+
+                const sesionesUl = document.getElementById('sesiones');
+                data.sesiones.forEach(sesion => {
+                    const li = document.createElement('li');
+                    li.textContent = `${sesion.fecha} a las ${sesion.hora} en ${sesion.sala}`;
+                    sesionesUl.appendChild(li);
+                });
+            })
+            .catch(err => {
+                console.error('Error al cargar detalle:', err);
+            });
+    </script>
+</body>
+</html>
