@@ -90,7 +90,7 @@
         <ul id="peliculasList"></ul>
 
         <h3>Sesiones</h3>
-        <ul id="sesionesList"></ul>
+        <ul id="sesionesList">No hay sesiones para esta película.</ul>
 
         <div id="detalleSesion"></div>
     </div>
@@ -140,8 +140,9 @@
             .then(response => response.json())
             .then(data => {
                 peliculasList.innerHTML = '';
-                sesionesList.innerHTML = '';
+                sesionesList.innerHTML = 'No hay sesiones para esta película.';
                 detalleSesion.style.display = 'none';
+
                 data.forEach(pelicula => {
                     const li = document.createElement('li');
                     li.textContent = `${pelicula.titulo} (${pelicula.genero})`;
