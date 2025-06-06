@@ -13,10 +13,10 @@ def create_app():
 
     from . import models
     from .routes import auth
-    from .routes import movies  # ✅ AÑADIDO
+    from .routes import movies  # Importamos el módulo movies
 
     app.register_blueprint(auth.bp)
-    app.register_blueprint(movies.bp)  # ✅ CORREGIDO
+    app.register_blueprint(movies.movies_bp)  # Registramos el blueprint como movies_bp
 
     with app.app_context():
         db.create_all()
