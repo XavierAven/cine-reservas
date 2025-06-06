@@ -1,31 +1,32 @@
 from flask import Blueprint, jsonify
-from ..models import Pelicula, Sesion
+from app.models import Pelicula, Sesion
+from app.database import db
 
-bp = Blueprint('movies', __name__, url_prefix='/peliculas')
+movies_bp = Blueprint('movies', __name__, url_prefix='/peliculas')
 
-@bp.route('/', methods=['GET'])
-def obtener_peliculas():
+@movies_bp.route('/', methods=['GET'])
+def get_peliculas():
     peliculas = Pelicula.query.all()
-    resultado = []
-    for p in peliculas:
-        resultado.append({
+    peliculas_list = [
+        {
             'id': p.id,
             'titulo': p.titulo,
             'descripcion': p.descripcion,
             'duracion': p.duracion,
             'genero': p.genero
-        })
-    return jsonify(resultado)
+        } for p in peliculas
+    ]
+    return jsonify(peliculas_list)
 
-@bp.route('/sesiones/<int:pelicula_id>', methods=['GET'])
-def obtener_sesiones(pelicula_id):
+@movies_bp.route('/sesiones/<int:pelicula_id>', methods=['GET'])
+def get_sesiones(pelicula_id):
     sesiones = Sesion.query.filter_by(id_pelicula=pelicula_id).all()
-    resultado = []
-    for s in sesiones:
-        resultado.append({
+    sesiones_list = [
+        {
             'id': s.id,
             'fecha': s.fecha.strftime('%Y-%m-%d'),
             'hora': s.hora.strftime('%H:%M'),
             'sala': s.sala
-        })
-    return jsonify(resultado)
+        } for s in sesiones
+    ]
+    return jsonify(sesiones_list)
