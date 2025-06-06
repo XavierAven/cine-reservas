@@ -13,17 +13,16 @@ def create_app():
 
     from . import models
     from .routes import auth
-    from .routes import movies  # Importamos el módulo movies
+    from .routes import movies
 
     app.register_blueprint(auth.bp)
-    app.register_blueprint(movies.movies_bp)  # Registramos el blueprint como movies_bp
+    app.register_blueprint(movies.bp)
 
     with app.app_context():
         db.create_all()
 
     @app.route('/')
     def home():
-        # Sirve el index.html desde la carpeta static
         return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
 
     return app

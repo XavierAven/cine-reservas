@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify
 from ..models import Pelicula, Sesion
 
-movies_bp = Blueprint('movies', __name__, url_prefix='/peliculas')
+bp = Blueprint('movies', __name__, url_prefix='/peliculas')
 
-@movies_bp.route('/', methods=['GET'])
+@bp.route('/', methods=['GET'])
 def obtener_peliculas():
     peliculas = Pelicula.query.all()
     resultado = []
@@ -17,7 +17,7 @@ def obtener_peliculas():
         })
     return jsonify(resultado)
 
-@movies_bp.route('/sesiones/<int:pelicula_id>', methods=['GET'])
+@bp.route('/sesiones/<int:pelicula_id>', methods=['GET'])
 def obtener_sesiones(pelicula_id):
     sesiones = Sesion.query.filter_by(id_pelicula=pelicula_id).all()
     resultado = []
