@@ -23,6 +23,7 @@ def create_app():
 
     @app.route('/')
     def home():
-        return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
+        # Servir index.html desde la carpeta app/static
+        return send_from_directory(os.path.join(app.root_path, 'app/static'), 'index.html')
 
     return app
