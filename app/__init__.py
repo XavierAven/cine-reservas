@@ -4,7 +4,7 @@ from .database import db
 import os
 
 def create_app():
-    app = Flask(__name__, static_folder='static')
+    app = Flask(__name__, static_folder='app/static')
     app.config.from_pyfile('../config.py')
 
     CORS(app)  # Habilitar CORS
