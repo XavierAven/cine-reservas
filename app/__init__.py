@@ -13,7 +13,10 @@ def create_app():
 
     from . import models
     from .routes import auth
+    from .routes import movies  # ✅ AÑADIDO
+
     app.register_blueprint(auth.bp)
+    app.register_blueprint(movies.movies_bp)  # ✅ AÑADIDO
 
     with app.app_context():
         db.create_all()
