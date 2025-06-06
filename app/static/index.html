@@ -3,19 +3,84 @@
 <head>
     <meta charset="UTF-8" />
     <title>Login Cine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #004aad;
+        }
+        form {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            width: 300px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #004aad;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #00337a;
+        }
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        #peliculasList li,
+        #sesionesList li {
+            cursor: pointer;
+            margin: 6px 0;
+            padding: 6px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        #peliculasList li:hover,
+        #sesionesList li:hover {
+            background-color: #e0e7ff;
+        }
+        #detalleSesion {
+            margin-top: 15px;
+            background-color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            width: 320px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <h1>Login</h1>
     <form id="loginForm">
         <label for="email">Email:</label><br />
         <input type="email" id="email" required /><br /><br />
-        
+
         <label for="password">Password:</label><br />
         <input type="password" id="password" required /><br /><br />
-        
+
         <button type="submit">Entrar</button>
     </form>
-    
+
     <div id="message"></div>
 
     <hr>
@@ -26,6 +91,8 @@
 
         <h3>Sesiones</h3>
         <ul id="sesionesList"></ul>
+
+        <div id="detalleSesion"></div>
     </div>
 
     <script>
@@ -34,6 +101,7 @@
         const peliculasSection = document.getElementById('peliculasSection');
         const peliculasList = document.getElementById('peliculasList');
         const sesionesList = document.getElementById('sesionesList');
+        const detalleSesion = document.getElementById('detalleSesion');
         let tokenGlobal = null;
 
         loginForm.addEventListener('submit', function(event) {
@@ -73,12 +141,14 @@
             .then(data => {
                 peliculasList.innerHTML = '';
                 sesionesList.innerHTML = '';
+                detalleSesion.style.display = 'none';
                 data.forEach(pelicula => {
                     const li = document.createElement('li');
                     li.textContent = `${pelicula.titulo} (${pelicula.genero})`;
                     li.style.cursor = 'pointer';
                     li.addEventListener('click', () => {
                         fetchSesiones(pelicula.id);
+                        detalleSesion.style.display = 'none';
                     });
                     peliculasList.appendChild(li);
                 });
@@ -94,12 +164,18 @@
             .then(response => response.json())
             .then(data => {
                 sesionesList.innerHTML = '';
+                detalleSesion.style.display = 'none';
+
                 if (data.length === 0) {
                     sesionesList.textContent = 'No hay sesiones para esta película.';
                 } else {
                     data.forEach(sesion => {
                         const li = document.createElement('li');
                         li.textContent = `Fecha: ${sesion.fecha}, Hora: ${sesion.hora}, Sala: ${sesion.sala}`;
+                        li.style.cursor = 'pointer';
+                        li.addEventListener('click', () => {
+                            mostrarDetalleSesion(sesion);
+                        });
                         sesionesList.appendChild(li);
                     });
                 }
@@ -108,6 +184,16 @@
                 messageDiv.textContent = 'Error al cargar sesiones';
                 console.error(error);
             });
+        }
+
+        function mostrarDetalleSesion(sesion) {
+            detalleSesion.style.display = 'block';
+            detalleSesion.innerHTML = `
+                <h4>Detalle de Sesión</h4>
+                <p><strong>Fecha:</strong> ${sesion.fecha}</p>
+                <p><strong>Hora:</strong> ${sesion.hora}</p>
+                <p><strong>Sala:</strong> ${sesion.sala}</p>
+            `;
         }
     </script>
 </body>
