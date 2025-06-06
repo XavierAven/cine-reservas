@@ -18,15 +18,15 @@
     
     <div id="message"></div>
 
-    <hr>
-
-    <h2>Películas disponibles</h2>
-    <ul id="peliculas-lista"></ul>
+    <div id="peliculas-container" style="display:none;">
+        <h2>Películas disponibles</h2>
+        <ul id="peliculas-lista"></ul>
+    </div>
 
     <script>
-        // LOGIN
         const loginForm = document.getElementById('loginForm');
         const messageDiv = document.getElementById('message');
+        const peliculasContainer = document.getElementById('peliculas-container');
 
         loginForm.addEventListener('submit', function(event) {
             event.preventDefault();
@@ -43,19 +43,9 @@
             .then(data => {
                 if (data.token) {
                     localStorage.setItem('token', data.token);
-                    messageDiv.textContent = 'Login correcto! Cargando perfil...';
-
-                    fetch('http://83.40.227.67:5000/auth/profile', {
-                        headers: { 'Authorization': 'Bearer ' + data.token }
-                    })
-                    .then(resp => resp.json())
-                    .then(user => {
-                        messageDiv.textContent = `¡Bienvenido, ${user.nombre}!`;
-                    })
-                    .catch(err => {
-                        messageDiv.textContent = 'Error al cargar perfil';
-                        console.error(err);
-                    });
+                    messageDiv.textContent = 'Login correcto. Bienvenido!';
+                    peliculasContainer.style.display = 'block';
+                    cargarPeliculas();
                 } else if (data.error) {
                     messageDiv.textContent = 'Error: ' + data.error;
                 }
@@ -66,20 +56,22 @@
             });
         });
 
-        // CARGAR PELÍCULAS
-        fetch('http://83.40.227.67:5000/peliculas')
-            .then(response => response.json())
-            .then(data => {
-                const lista = document.getElementById('peliculas-lista');
-                data.forEach(pelicula => {
-                    const item = document.createElement('li');
-                    item.textContent = `${pelicula.titulo} - ${pelicula.genero} (${pelicula.duracion} min)`;
-                    lista.appendChild(item);
+        function cargarPeliculas() {
+            fetch('http://83.40.227.67:5000/peliculas')
+                .then(response => response.json())
+                .then(data => {
+                    const lista = document.getElementById('peliculas-lista');
+                    lista.innerHTML = '';
+                    data.forEach(pelicula => {
+                        const item = document.createElement('li');
+                        item.textContent = `${pelicula.titulo} - ${pelicula.genero} (${pelicula.duracion} min)`;
+                        lista.appendChild(item);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar las películas:', error);
                 });
-            })
-            .catch(error => {
-                console.error('Error al cargar las películas:', error);
-            });
+        }
     </script>
 </body>
 </html>
