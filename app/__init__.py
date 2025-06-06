@@ -7,7 +7,7 @@ def create_app():
     app = Flask(__name__, static_folder='app/static')
     app.config.from_pyfile('../config.py')
 
-    CORS(app)  # Habilitar CORS
+    CORS(app)
 
     db.init_app(app)
 
@@ -16,7 +16,7 @@ def create_app():
     from .routes import movies
 
     app.register_blueprint(auth.bp)
-    app.register_blueprint(movies.movies_bp)  # Usamos movies_bp
+    app.register_blueprint(movies.movies_bp)
 
     with app.app_context():
         db.create_all()
