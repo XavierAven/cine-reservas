@@ -18,12 +18,26 @@
     
     <div id="message"></div>
 
+    <hr>
+
+    <div id="peliculasSection" style="display:none;">
+        <h2>Películas</h2>
+        <ul id="peliculasList"></ul>
+
+        <h3>Sesiones</h3>
+        <ul id="sesionesList"></ul>
+    </div>
+
     <script>
         const loginForm = document.getElementById('loginForm');
         const messageDiv = document.getElementById('message');
+        const peliculasSection = document.getElementById('peliculasSection');
+        const peliculasList = document.getElementById('peliculasList');
+        const sesionesList = document.getElementById('sesionesList');
+        let tokenGlobal = null;
 
         loginForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Evitar recarga de la página
+            event.preventDefault();
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -36,20 +50,13 @@
             .then(response => response.json())
             .then(data => {
                 if (data.token) {
+                    tokenGlobal = data.token;
                     localStorage.setItem('token', data.token);
                     messageDiv.textContent = 'Login correcto! Cargando perfil...';
+                    peliculasSection.style.display = 'block';
+                    loginForm.style.display = 'none';
 
-                    fetch('http://68.221.131.53:5000/auth/profile', {
-                        headers: { 'Authorization': 'Bearer ' + data.token }
-                    })
-                    .then(resp => resp.json())
-                    .then(user => {
-                        messageDiv.textContent = `¡Bienvenido, ${user.nombre}!`;
-                    })
-                    .catch(err => {
-                        messageDiv.textContent = 'Error al cargar perfil';
-                        console.error(err);
-                    });
+                    fetchPeliculas();
                 } else if (data.error) {
                     messageDiv.textContent = 'Error: ' + data.error;
                 }
@@ -59,6 +66,49 @@
                 console.error('Error:', error);
             });
         });
+
+        function fetchPeliculas() {
+            fetch('http://68.221.131.53:5000/peliculas/')
+            .then(response => response.json())
+            .then(data => {
+                peliculasList.innerHTML = '';
+                sesionesList.innerHTML = '';
+                data.forEach(pelicula => {
+                    const li = document.createElement('li');
+                    li.textContent = `${pelicula.titulo} (${pelicula.genero})`;
+                    li.style.cursor = 'pointer';
+                    li.addEventListener('click', () => {
+                        fetchSesiones(pelicula.id);
+                    });
+                    peliculasList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                messageDiv.textContent = 'Error al cargar películas';
+                console.error(error);
+            });
+        }
+
+        function fetchSesiones(peliculaId) {
+            fetch(`http://68.221.131.53:5000/peliculas/sesiones/${peliculaId}`)
+            .then(response => response.json())
+            .then(data => {
+                sesionesList.innerHTML = '';
+                if (data.length === 0) {
+                    sesionesList.textContent = 'No hay sesiones para esta película.';
+                } else {
+                    data.forEach(sesion => {
+                        const li = document.createElement('li');
+                        li.textContent = `Fecha: ${sesion.fecha}, Hora: ${sesion.hora}, Sala: ${sesion.sala}`;
+                        sesionesList.appendChild(li);
+                    });
+                }
+            })
+            .catch(error => {
+                messageDiv.textContent = 'Error al cargar sesiones';
+                console.error(error);
+            });
+        }
     </script>
 </body>
 </html>
