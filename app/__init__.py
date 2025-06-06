@@ -16,7 +16,7 @@ def create_app():
     from .routes import movies  # ✅ AÑADIDO
 
     app.register_blueprint(auth.bp)
-    app.register_blueprint(movies.movies_bp)  # ✅ AÑADIDO
+    app.register_blueprint(movies.bp)  # ✅ CORREGIDO
 
     with app.app_context():
         db.create_all()
