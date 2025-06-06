@@ -3,6 +3,32 @@
 <head>
     <meta charset="UTF-8" />
     <title>Detalle Película</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1, h2 {
+            color: #004aad;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 5px;
+            margin: 5px 0;
+            background-color: #e9f0ff;
+            transition: background-color 0.2s;
+        }
+        li:hover {
+            background-color: #c8dbff;
+        }
+    </style>
 </head>
 <body>
     <h1 id="titulo"></h1>
@@ -13,9 +39,15 @@
     <h2>Sesiones disponibles</h2>
     <ul id="sesiones"></ul>
 
+    <button onclick="volver()">Volver</button>
+
     <script>
         const params = new URLSearchParams(window.location.search);
         const peliculaId = params.get('id');
+
+        function volver() {
+            window.location.href = 'index.html';
+        }
 
         fetch(`http://68.221.131.53:5000/peliculas/detalle/${peliculaId}`)
             .then(res => res.json())

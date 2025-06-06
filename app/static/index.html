@@ -146,9 +146,9 @@
                     const li = document.createElement('li');
                     li.textContent = `${pelicula.titulo} (${pelicula.genero})`;
                     li.style.cursor = 'pointer';
+                    // Aquí se cambia la acción para redirigir a la página detalle
                     li.addEventListener('click', () => {
-                        fetchSesiones(pelicula.id);
-                        detalleSesion.style.display = 'none';
+                        window.location.href = `pelicula_detalle.html?id=${pelicula.id}`;
                     });
                     peliculasList.appendChild(li);
                 });
