@@ -142,6 +142,13 @@
             localStorage.removeItem('token');
             location.reload();
         }
+        // Si viene de pelicula.html, muestra directamente la cartelera
+if (window.location.hash === "#cartelera" && localStorage.getItem("token")) {
+    loginForm.style.display = 'none';
+    peliculasSection.style.display = 'block';
+    fetchPeliculas();
+}
+
     </script>
 </body>
 </html>
