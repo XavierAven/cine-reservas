@@ -12,11 +12,12 @@ def create_app():
     db.init_app(app)
 
     from . import models
-    from .routes import auth
-    from .routes import movies
+    from .routes import auth, movies, profile, reservas
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(movies.movies_bp)
+    app.register_blueprint(profile.profile_bp)
+    app.register_blueprint(reservas.reservas_bp)
 
     with app.app_context():
         db.create_all()
