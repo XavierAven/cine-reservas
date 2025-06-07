@@ -1,6 +1,15 @@
+# insertar_datos.py
+import requests
 from app import create_app, db
 from app.models import Pelicula, Sesion
 from datetime import date, time
+
+OMDB_API_KEY = "9e446b40"
+
+def obtener_poster(titulo):
+    url = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={titulo}"
+    respuesta = requests.get(url).json()
+    return respuesta.get("Poster", "")
 
 app = create_app()
 
@@ -9,74 +18,29 @@ with app.app_context():
     db.create_all()
 
     peliculas = [
-        Pelicula(
-            titulo="Interstellar",
-            descripcion="Un grupo de exploradores viaja a través de un agujero de gusano en el espacio en un intento por asegurar el futuro de la humanidad.",
-            duracion=169,
-            genero="Ciencia ficción",
-            director="Christopher Nolan",
-            actores_principales="Matthew McConaughey, Anne Hathaway, Jessica Chastain"
-        ),
-        Pelicula(
-            titulo="El Padrino",
-            descripcion="La historia de la familia mafiosa Corleone en Estados Unidos tras la Segunda Guerra Mundial.",
-            duracion=175,
-            genero="Drama",
-            director="Francis Ford Coppola",
-            actores_principales="Marlon Brando, Al Pacino, James Caan"
-        ),
-        Pelicula(
-            titulo="Inception",
-            descripcion="Un ladrón experto en el arte de robar secretos del subconsciente recibe la tarea de implantar una idea en la mente de un objetivo.",
-            duracion=148,
-            genero="Thriller",
-            director="Christopher Nolan",
-            actores_principales="Leonardo DiCaprio, Joseph Gordon-Levitt, Ellen Page"
-        ),
-        Pelicula(
-            titulo="Parasite",
-            descripcion="Una familia pobre se infiltra en la vida de una familia rica en un juego de engaños con consecuencias inesperadas.",
-            duracion=132,
-            genero="Thriller",
-            director="Bong Joon-ho",
-            actores_principales="Song Kang-ho, Lee Sun-kyun, Cho Yeo-jeong"
-        ),
-        Pelicula(
-            titulo="La La Land",
-            descripcion="Un pianista de jazz y una actriz en busca del éxito se enamoran mientras persiguen sus sueños en Los Ángeles.",
-            duracion=128,
-            genero="Musical",
-            director="Damien Chazelle",
-            actores_principales="Ryan Gosling, Emma Stone"
-        ),
+        Pelicula("Interstellar", "Exploradores en agujero de gusano", 169, "Ciencia ficción", "Christopher Nolan", "Matthew McConaughey", obtener_poster("Interstellar")),
+        Pelicula("El Padrino", "Familia mafiosa en EE.UU.", 175, "Drama", "Francis Ford Coppola", "Marlon Brando", obtener_poster("The Godfather")),
+        Pelicula("Inception", "Ladrón en sueños", 148, "Thriller", "Christopher Nolan", "Leonardo DiCaprio", obtener_poster("Inception")),
+        Pelicula("Parasite", "Familia pobre infiltrada en ricos", 132, "Thriller", "Bong Joon-ho", "Song Kang-ho", obtener_poster("Parasite")),
+        Pelicula("La La Land", "Romance en L.A.", 128, "Musical", "Damien Chazelle", "Ryan Gosling", obtener_poster("La La Land")),
+        Pelicula("Titanic", "Amor en naufragio histórico", 195, "Drama", "James Cameron", "Leonardo DiCaprio", obtener_poster("Titanic")),
+        Pelicula("The Dark Knight", "Batman contra Joker", 152, "Acción", "Christopher Nolan", "Christian Bale", obtener_poster("The Dark Knight")),
+        Pelicula("Avatar", "Exploración en otro planeta", 162, "Ciencia ficción", "James Cameron", "Sam Worthington", obtener_poster("Avatar")),
+        Pelicula("The Matrix", "Realidad virtual peligrosa", 136, "Ciencia ficción", "Wachowski", "Keanu Reeves", obtener_poster("The Matrix")),
+        Pelicula("Joker", "Origen del Joker", 122, "Drama", "Todd Phillips", "Joaquin Phoenix", obtener_poster("Joker")),
+        Pelicula("Forrest Gump", "Vida extraordinaria de un hombre ordinario", 142, "Drama", "Robert Zemeckis", "Tom Hanks", obtener_poster("Forrest Gump")),
+        Pelicula("Gladiator", "Venganza en la antigua Roma", 155, "Acción", "Ridley Scott", "Russell Crowe", obtener_poster("Gladiator")),
+        Pelicula("The Shawshank Redemption", "Amistad en prisión", 142, "Drama", "Frank Darabont", "Tim Robbins", obtener_poster("The Shawshank Redemption")),
+        Pelicula("Pulp Fiction", "Historias entrelazadas en el mundo criminal", 154, "Crimen", "Quentin Tarantino", "John Travolta", obtener_poster("Pulp Fiction")),
+        Pelicula("Fight Club", "Club secreto y caos", 139, "Drama", "David Fincher", "Brad Pitt", obtener_poster("Fight Club")),
+        Pelicula("Saving Private Ryan", "Búsqueda en la Segunda Guerra Mundial", 169, "Bélica", "Steven Spielberg", "Tom Hanks", obtener_poster("Saving Private Ryan")),
+        Pelicula("The Lion King", "Historia del príncipe Simba", 88, "Animación", "Roger Allers", "Matthew Broderick", obtener_poster("The Lion King")),
+        Pelicula("Back to the Future", "Viajes en el tiempo divertidos", 116, "Ciencia ficción", "Robert Zemeckis", "Michael J. Fox", obtener_poster("Back to the Future")),
+        Pelicula("Star Wars: Episode IV - A New Hope", "Lucha galáctica épica", 121, "Ciencia ficción", "George Lucas", "Mark Hamill", obtener_poster("Star Wars")),
+        Pelicula("Harry Potter and the Sorcerer's Stone", "Inicio del joven mago", 152, "Fantasía", "Chris Columbus", "Daniel Radcliffe", obtener_poster("Harry Potter and the Sorcerer's Stone"))
     ]
 
     db.session.add_all(peliculas)
     db.session.commit()
 
-    sesiones = [
-        # Interstellar
-        Sesion(id_pelicula=1, fecha=date(2025, 6, 10), hora=time(17, 0), sala="Sala 1"),
-        Sesion(id_pelicula=1, fecha=date(2025, 6, 11), hora=time(20, 0), sala="Sala 1"),
-
-        # El Padrino
-        Sesion(id_pelicula=2, fecha=date(2025, 6, 10), hora=time(19, 0), sala="Sala 2"),
-        Sesion(id_pelicula=2, fecha=date(2025, 6, 12), hora=time(21, 0), sala="Sala 3"),
-
-        # Inception
-        Sesion(id_pelicula=3, fecha=date(2025, 6, 11), hora=time(18, 30), sala="Sala 1"),
-        Sesion(id_pelicula=3, fecha=date(2025, 6, 13), hora=time(22, 0), sala="Sala 2"),
-
-        # Parasite
-        Sesion(id_pelicula=4, fecha=date(2025, 6, 10), hora=time(16, 30), sala="Sala 4"),
-        Sesion(id_pelicula=4, fecha=date(2025, 6, 14), hora=time(19, 30), sala="Sala 4"),
-
-        # La La Land
-        Sesion(id_pelicula=5, fecha=date(2025, 6, 15), hora=time(21, 0), sala="Sala 5"),
-        Sesion(id_pelicula=5, fecha=date(2025, 6, 16), hora=time(18, 0), sala="Sala 5"),
-    ]
-
-    db.session.add_all(sesiones)
-    db.session.commit()
-
-    print("✅ Películas y sesiones insertadas correctamente.")
+    print("✅ Películas insertadas con imágenes correctamente.")

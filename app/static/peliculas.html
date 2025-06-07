@@ -1,85 +1,50 @@
+<!-- peliculas.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <title>Películas Cine</title>
+    <title>Cartelera del Cine</title>
 </head>
 <body>
-    <h1>Películas</h1>
+    <h1>🎬 Cartelera del Cine</h1>
     <button id="logoutBtn">Cerrar sesión</button>
-    <div id="message"></div>
 
-    <h2>Películas</h2>
-    <ul id="peliculasList"></ul>
-
-    <h3>Sesiones</h3>
-    <ul id="sesionesList"></ul>
+    <div id="cartelera"></div>
 
     <script>
-        const peliculasList = document.getElementById('peliculasList');
-        const sesionesList = document.getElementById('sesionesList');
-        const messageDiv = document.getElementById('message');
-        const logoutBtn = document.getElementById('logoutBtn');
-
         const token = localStorage.getItem('token');
+
         if (!token) {
-            alert('No estás autenticado. Redirigiendo al login.');
+            alert('Debes iniciar sesión primero.');
             window.location.href = 'index.html';
         }
 
-        function fetchPeliculas() {
-            fetch('http://68.221.131.53:5000/peliculas/', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            })
-            .then(response => response.json())
-            .then(data => {
-                peliculasList.innerHTML = '';
-                sesionesList.innerHTML = '';
-                data.forEach(pelicula => {
-                    const li = document.createElement('li');
-                    li.textContent = `${pelicula.titulo} (${pelicula.genero})`;
-                    li.style.cursor = 'pointer';
-                    li.addEventListener('click', () => {
-                        fetchSesiones(pelicula.id);
-                    });
-                    peliculasList.appendChild(li);
-                });
-            })
-            .catch(error => {
-                messageDiv.textContent = 'Error al cargar películas';
-                console.error(error);
-            });
-        }
-
-        function fetchSesiones(peliculaId) {
-            fetch(`http://68.221.131.53:5000/peliculas/sesiones/${peliculaId}`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            })
-            .then(response => response.json())
-            .then(data => {
-                sesionesList.innerHTML = '';
-                if (data.length === 0) {
-                    sesionesList.textContent = 'No hay sesiones para esta película.';
-                } else {
-                    data.forEach(sesion => {
-                        const li = document.createElement('li');
-                        li.textContent = `Fecha: ${sesion.fecha}, Hora: ${sesion.hora}, Sala: ${sesion.sala}`;
-                        sesionesList.appendChild(li);
-                    });
-                }
-            })
-            .catch(error => {
-                messageDiv.textContent = 'Error al cargar sesiones';
-                console.error(error);
-            });
-        }
-
-        logoutBtn.addEventListener('click', () => {
+        document.getElementById('logoutBtn').onclick = () => {
             localStorage.removeItem('token');
             window.location.href = 'index.html';
-        });
+        };
 
-        fetchPeliculas();
+        async function cargarPeliculas() {
+            const response = await fetch('/peliculas/', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const peliculas = await response.json();
+
+            const cartelera = document.getElementById('cartelera');
+            cartelera.innerHTML = peliculas.map(pelicula => `
+                <div style="margin-bottom: 20px;">
+                    <img src="${pelicula.imagen_url}" alt="${pelicula.titulo}" width="200">
+                    <h3>${pelicula.titulo} (${pelicula.genero})</h3>
+                    <button onclick="verPelicula(${pelicula.id})">Ver detalles</button>
+                </div>
+            `).join('');
+        }
+
+        function verPelicula(id) {
+            window.location.href = `pelicula.html?id=${id}`;
+        }
+
+        cargarPeliculas();
     </script>
 </body>
 </html>
