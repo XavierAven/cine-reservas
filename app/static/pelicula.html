@@ -60,7 +60,6 @@
 
         async function cargarAsientos(idSesion) {
             const token = localStorage.getItem("token");
-            // Obtenemos sesiones para esta película
             try {
                 const responseSesiones = await fetch(`/peliculas/${idSesion}`, {
                     headers: { "Authorization": `Bearer ${token}` }
@@ -85,7 +84,7 @@
                     const dataAsientos = await responseAsientos.json();
 
                     const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
-                    // const asientosReservados = dataAsientos.asientos.filter(a => a.reservado);
+                    const asientosReservados = dataAsientos.asientos.filter(a => a.reservado);
 
                     const divAsientos = document.createElement("div");
                     divAsientos.innerHTML = "<p>Seleccione asientos disponibles:</p>";
@@ -119,7 +118,6 @@
                             return;
                         }
 
-                        // Crear reserva
                         try {
                             const resp = await fetch("/reservas", {
                                 method: "POST",
@@ -136,7 +134,6 @@
 
                             if (resp.ok) {
                                 alert("Reserva creada con éxito.");
-                                // Actualizar la vista de asientos
                                 cargarAsientos(idSesion);
                             } else {
                                 alert("Error: " + (resJson.error || "No se pudo reservar"));
@@ -152,6 +149,8 @@
 
             } catch (error) {
                 console.error("Error al cargar sesiones o asientos:", error);
+                const sesionesDiv = document.getElementById("sesiones");
+                sesionesDiv.innerHTML = "<p>Error al cargar las sesiones.</p>";
             }
         }
 
