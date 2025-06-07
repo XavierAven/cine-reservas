@@ -45,8 +45,8 @@ def create_app():
     def obtener_asientos(id_sesion):
         from app.models import Asiento
         asientos = Asiento.query.filter_by(id_sesion=id_sesion).all()
-        return {
+        return jsonify({
             "asientos": [a.to_dict() for a in asientos]
-        }
+        })
 
     return app
