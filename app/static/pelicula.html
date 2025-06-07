@@ -117,6 +117,11 @@
                             return;
                         }
 
+                        console.log("Datos para reservar:", {
+                            id_sesion: sesion.id,
+                            asientos: seleccionados.join(',')
+                        });
+
                         try {
                             const resp = await fetch("/reservas", {
                                 method: "POST",
@@ -132,7 +137,7 @@
                             const resJson = await resp.json();
 
                             if (resp.ok) {
-                                alert(`Reserva creada con éxito para ${seleccionados.length} asiento(s).`);
+                                alert("Reserva creada con éxito.");
                                 cargarSesionesYAsientos(idPelicula);
                             } else {
                                 alert("Error: " + (resJson.error || "No se pudo reservar"));
