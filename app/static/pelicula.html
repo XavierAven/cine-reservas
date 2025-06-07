@@ -16,7 +16,7 @@
             }
 
             try {
-                const response = await fetch(`/peliculas/${id}`);
+                const response = await fetch(/peliculas/${id});
                 const data = await response.json();
 
                 const pelicula = data.pelicula;
@@ -38,7 +38,7 @@
                 } else {
                     data.sesiones.forEach(sesion => {
                         const div = document.createElement("div");
-                        div.innerHTML = `📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}`;
+                        div.innerHTML = 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala};
                         sesionesDiv.appendChild(div);
                     });
                 }
@@ -50,7 +50,7 @@
 
         async function cargarPoster(titulo) {
             const apiKey = "9e446b40";
-            const url = `https://www.omdbapi.com/?t=${encodeURIComponent(titulo)}&apikey=${apiKey}`;
+            const url = https://www.omdbapi.com/?t=${encodeURIComponent(titulo)}&apikey=${apiKey};
 
             try {
                 const response = await fetch(url);
