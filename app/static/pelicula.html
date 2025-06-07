@@ -82,6 +82,7 @@
                     });
                     const dataAsientos = await responseAsientos.json();
 
+                    // dataAsientos viene como { asientos: [...] }, por eso accedemos a .asientos
                     const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
 
                     const divAsientos = document.createElement("div");
@@ -142,6 +143,8 @@
 
             } catch (error) {
                 console.error("Error al cargar sesiones o asientos:", error);
+                const sesionesDiv = document.getElementById("sesiones");
+                sesionesDiv.innerHTML = "<p>Error al cargar sesiones o asientos.</p>";
             }
         }
 
