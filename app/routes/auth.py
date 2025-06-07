@@ -8,26 +8,6 @@ from functools import wraps
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-# Crear admin automáticamente al cargar este módulo (solo si no existe)
-def crear_admin():
-    admin_email = "admin@cine.com"
-    admin_password = "admin123"  # Cambia la contraseña aquí si quieres
-
-    if not Usuario.query.filter_by(email=admin_email).first():
-        admin = Usuario(
-            nombre="Admin",
-            email=admin_email,
-            password=generate_password_hash(admin_password),
-            tipo="admin"  # Cambia según tu modelo
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print("Usuario admin creado automáticamente.")
-
-@bp.before_app_first_request
-def init_admin():
-    crear_admin()
-
 @bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
