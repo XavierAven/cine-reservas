@@ -89,11 +89,6 @@
                     const dataAsientos = await responseAsientos.json();
 
                     const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
-                    const totalDisponibles = asientosDisponibles.length;
-
-                    const infoDisponibles = document.createElement('p');
-                    infoDisponibles.textContent = `Asientos disponibles: ${totalDisponibles}`;
-                    divSesion.appendChild(infoDisponibles);
 
                     const divAsientos = document.createElement("div");
                     divAsientos.innerHTML = "<p>Seleccione asientos disponibles:</p>";
@@ -137,7 +132,7 @@
                             const resJson = await resp.json();
 
                             if (resp.ok) {
-                                alert("Reserva creada con éxito.");
+                                alert(`Reserva creada con éxito para ${seleccionados.length} asiento(s).`);
                                 cargarSesionesYAsientos(idPelicula);
                             } else {
                                 alert("Error: " + (resJson.error || "No se pudo reservar"));
