@@ -8,15 +8,16 @@ def create_app():
     app.config.from_pyfile('../config.py')
 
     CORS(app)
-
     db.init_app(app)
 
     from . import models
     from .routes import auth
     from .routes import movies
+    from .routes import reservas  # <-- añadir aquí
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(movies.movies_bp)
+    app.register_blueprint(reservas.reservas_bp)  # <-- registrar aquí
 
     with app.app_context():
         db.create_all()
@@ -29,12 +30,12 @@ def create_app():
     def pelicula():
         return send_from_directory(os.path.join(app.root_path, 'static'), 'pelicula.html')
 
-    @app.route('/index.html')
-    def index_html():
-        return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
-
     @app.route('/perfil.html')
     def perfil():
         return send_from_directory(os.path.join(app.root_path, 'static'), 'perfil.html')
+
+    @app.route('/index.html')
+    def index_html():
+        return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
 
     return app

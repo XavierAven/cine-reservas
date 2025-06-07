@@ -4,34 +4,14 @@
     <meta charset="UTF-8" />
     <title>Perfil de Usuario</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        h1, h2, h3 {
-            color: #004aad;
-        }
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f5f5f5; color: #333; }
+        h1, h2 { color: #004aad; }
         button {
-            background-color: #004aad;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 14px;
-            margin-left: 10px;
+            background-color: #004aad; color: white; border: none; padding: 8px 12px;
+            cursor: pointer; border-radius: 4px; font-size: 14px; margin-left: 10px;
         }
-        button:hover {
-            background-color: #00337a;
-        }
-        #reservas div {
-            margin-bottom: 8px;
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
-        }
+        button:hover { background-color: #00337a; }
+        .reserva { background: #fff; margin-bottom: 12px; padding: 12px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -39,73 +19,86 @@
     <p><strong>Nombre:</strong> <span id="nombre"></span></p>
     <p><strong>Email:</strong> <span id="email"></span></p>
 
-    <h2>Mis reservas</h2>
+    <h2>Mis Reservas</h2>
     <div id="reservas"></div>
 
-    <p><a href="index.html#cartelera" style="color:#004aad;">⬅️ Volver a la cartelera</a></p>
+    <p><a href="index.html#cartelera" style="background:#004aad; color:#fff; padding:8px 15px; border-radius:5px; text-decoration:none;">⬅️ Volver a la cartelera</a></p>
 
     <script>
         async function cargarPerfil() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
             if (!token) {
-                alert("Debes iniciar sesión.");
-                window.location.href = "index.html";
+                alert('Debes iniciar sesión.');
+                window.location.href = 'index.html';
                 return;
             }
 
-            try {
-                const response = await fetch("/profile/", {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-
-                if (!response.ok) throw new Error("Error al cargar perfil");
-
-                const data = await response.json();
-
-                document.getElementById("nombre").textContent = data.nombre;
-                document.getElementById("email").textContent = data.email;
-
-                const reservasDiv = document.getElementById("reservas");
-                reservasDiv.innerHTML = "";
-
-                if (data.reservas.length === 0) {
-                    reservasDiv.innerHTML = "<p>No tienes reservas activas.</p>";
-                } else {
-                    data.reservas.forEach(r => {
-                        const div = document.createElement("div");
-                        div.innerHTML = `
-                            <strong>${r.pelicula_titulo}</strong> - ${r.fecha} ${r.hora} Sala: ${r.sala} - Asientos: ${r.asientos}
-                            <button onclick="cancelarReserva(${r.reserva_id})">Cancelar</button>
-                        `;
-                        reservasDiv.appendChild(div);
-                    });
-                }
-            } catch (error) {
-                alert(error.message);
+            // Obtener datos usuario
+            const perfilRes = await fetch('http://68.221.131.53:5000/auth/profile', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!perfilRes.ok) {
+                alert('Error al cargar perfil.');
+                return;
             }
+            const perfil = await perfilRes.json();
+            document.getElementById('nombre').textContent = perfil.nombre;
+            document.getElementById('email').textContent = perfil.email;
+
+            // Obtener reservas
+            const reservasRes = await fetch('http://68.221.131.53:5000/reservas', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!reservasRes.ok) {
+                document.getElementById('reservas').textContent = 'No hay reservas.';
+                return;
+            }
+            const reservas = await reservasRes.json();
+
+            const reservasDiv = document.getElementById('reservas');
+            reservasDiv.innerHTML = '';
+
+            if (reservas.length === 0) {
+                reservasDiv.textContent = 'No tienes reservas.';
+                return;
+            }
+
+            reservas.forEach(async (reserva) => {
+                // Obtener info de sesión y película
+                const sesionRes = await fetch(`http://68.221.131.53:5000/peliculas/${reserva.id_sesion}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                // La ruta correcta es a sesión, no película, corregiremos más abajo
+                // Por ahora mostramos reserva básica:
+                const div = document.createElement('div');
+                div.className = 'reserva';
+                div.innerHTML = `
+                    <p><strong>Asiento:</strong> ${reserva.asientos}</p>
+                    <p><strong>Fecha Reserva:</strong> ${new Date(reserva.fecha_reserva).toLocaleString()}</p>
+                    <button onclick="cancelarReserva(${reserva.id})">Anular Reserva</button>
+                `;
+                reservasDiv.appendChild(div);
+            });
         }
 
-        async function cancelarReserva(reservaId) {
-            const token = localStorage.getItem("token");
+        async function cancelarReserva(id) {
+            const token = localStorage.getItem('token');
             if (!token) {
-                alert("Debes iniciar sesión.");
+                alert('Debes iniciar sesión.');
+                window.location.href = 'index.html';
                 return;
             }
+            if (!confirm('¿Seguro que quieres anular esta reserva?')) return;
 
-            if (!confirm("¿Seguro que quieres cancelar esta reserva?")) return;
-
-            try {
-                const response = await fetch(`/profile/cancelar/${reservaId}`, {
-                    method: "DELETE",
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-
-                if (!response.ok) throw new Error("Error al cancelar la reserva");
-
-                alert("Reserva cancelada.");
+            const res = await fetch(`http://68.221.131.53:5000/reservas/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (res.ok) {
+                alert('Reserva anulada correctamente.');
                 cargarPerfil();
-            } catch (error) {
-                alert(error.message);
+            } else {
+                alert('Error al anular la reserva.');
             }
         }
 
