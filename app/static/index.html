@@ -86,6 +86,16 @@
         const peliculasList = document.getElementById('peliculasList');
         let tokenGlobal = null;
 
+        // ⬇️ Añadido: si ya hay token guardado, cargar cartelera directamente
+        const tokenEnStorage = localStorage.getItem('token');
+        if (tokenEnStorage) {
+            tokenGlobal = tokenEnStorage;
+            loginForm.style.display = 'none';
+            peliculasSection.style.display = 'block';
+            messageDiv.textContent = 'Login correcto! Cargando cartelera...';
+            fetchPeliculas();
+        }
+
         loginForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
