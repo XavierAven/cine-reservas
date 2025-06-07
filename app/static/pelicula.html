@@ -19,12 +19,16 @@
                 const response = await fetch(`/peliculas/${id}`);
                 const data = await response.json();
 
-                document.getElementById("titulo").textContent = data.pelicula.titulo;
-                document.getElementById("genero").textContent = data.pelicula.genero;
-                document.getElementById("duracion").textContent = data.pelicula.duracion + " min";
-                document.getElementById("descripcion").textContent = data.pelicula.descripcion;
-                document.getElementById("director").textContent = data.pelicula.director;
-                document.getElementById("actores").textContent = data.pelicula.actores_principales;
+                const pelicula = data.pelicula;
+
+                document.getElementById("titulo").textContent = pelicula.titulo;
+                document.getElementById("genero").textContent = pelicula.genero;
+                document.getElementById("duracion").textContent = pelicula.duracion + " min";
+                document.getElementById("descripcion").textContent = pelicula.descripcion;
+                document.getElementById("director").textContent = pelicula.director;
+                document.getElementById("actores").textContent = pelicula.actores_principales;
+
+                cargarPoster(pelicula.titulo);
 
                 const sesionesDiv = document.getElementById("sesiones");
                 sesionesDiv.innerHTML = "";
@@ -44,8 +48,22 @@
             }
         }
 
-        function volverACartelera() {
-            window.location.href = "index.html";
+        async function cargarPoster(titulo) {
+            const apiKey = "9e446b40";
+            const url = `https://www.omdbapi.com/?t=${encodeURIComponent(titulo)}&apikey=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.Poster && data.Poster !== "N/A") {
+                    document.getElementById("poster").src = data.Poster;
+                } else {
+                    document.getElementById("poster").alt = "Cartel no disponible";
+                }
+            } catch (error) {
+                console.error("Error al cargar el cartel:", error);
+            }
         }
 
         window.onload = cargarDatos;
@@ -53,6 +71,7 @@
 </head>
 <body>
     <h1 id="titulo"></h1>
+    <img id="poster" src="" alt="Cartel de la película" style="max-width:300px; margin-bottom:20px;">
     <p><strong>Género:</strong> <span id="genero"></span></p>
     <p><strong>Duración:</strong> <span id="duracion"></span></p>
     <p><strong>Director:</strong> <span id="director"></span></p>
@@ -68,6 +87,5 @@
             ⬅️ Volver a la cartelera
         </a>
     </p>
-
 </body>
 </html>
