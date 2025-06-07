@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <title>Login Cine</title>
+    <title>Login y Registro Cine</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,13 +39,15 @@
             cursor: pointer;
             border-radius: 4px;
             font-size: 16px;
+            margin-right: 10px;
         }
         button:hover {
             background-color: #00337a;
         }
-        #message, #registerMessage {
+        #message {
             margin-top: 10px;
             font-weight: bold;
+            color: red;
         }
         #peliculasList li {
             cursor: pointer;
@@ -61,41 +63,34 @@
 </head>
 <body>
     <h1>Login</h1>
-    <!-- Formulario Login -->
     <form id="loginForm">
-        <label for="email">Email:</label><br />
-        <input type="email" id="email" required /><br /><br />
+        <label for="emailLogin">Email:</label><br />
+        <input type="email" id="emailLogin" required /><br /><br />
 
-        <label for="password">Password:</label><br />
-        <input type="password" id="password" required /><br /><br />
+        <label for="passwordLogin">Password:</label><br />
+        <input type="password" id="passwordLogin" required /><br /><br />
 
         <button type="submit">Entrar</button>
+    </form>
+
+    <h2>O regístrate</h2>
+    <form id="registerForm">
+        <label for="nombreRegister">Nombre:</label><br />
+        <input type="text" id="nombreRegister" required /><br /><br />
+
+        <label for="emailRegister">Email:</label><br />
+        <input type="email" id="emailRegister" required /><br /><br />
+
+        <label for="passwordRegister">Password:</label><br />
+        <input type="password" id="passwordRegister" required /><br /><br />
+
+        <button type="submit">Registrar</button>
     </form>
 
     <div id="message"></div>
 
     <hr>
 
-    <!-- Formulario Registro -->
-    <h2>Registro</h2>
-    <form id="registerForm">
-        <label for="nombre">Nombre:</label><br />
-        <input type="text" id="nombre" required /><br /><br />
-
-        <label for="reg_email">Email:</label><br />
-        <input type="email" id="reg_email" required /><br /><br />
-
-        <label for="reg_password">Password:</label><br />
-        <input type="password" id="reg_password" required /><br /><br />
-
-        <button type="submit">Registrar</button>
-    </form>
-
-    <div id="registerMessage"></div>
-
-    <hr>
-
-    <!-- Sección Películas -->
     <div id="peliculasSection" style="display:none;">
         <h2>Películas</h2>
         <ul id="peliculasList"></ul>
@@ -104,19 +99,17 @@
 
     <script>
         const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
         const messageDiv = document.getElementById('message');
         const peliculasSection = document.getElementById('peliculasSection');
         const peliculasList = document.getElementById('peliculasList');
-        const registerForm = document.getElementById('registerForm');
-        const registerMessage = document.getElementById('registerMessage');
         let tokenGlobal = null;
 
-        // Login
         loginForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('emailLogin').value;
+            const password = document.getElementById('passwordLogin').value;
 
             fetch('http://68.221.131.53:5000/auth/login', {
                 method: 'POST',
@@ -128,49 +121,54 @@
                 if (data.token) {
                     tokenGlobal = data.token;
                     localStorage.setItem('token', data.token);
+                    messageDiv.style.color = 'green';
                     messageDiv.textContent = 'Login correcto! Cargando cartelera...';
                     peliculasSection.style.display = 'block';
                     loginForm.style.display = 'none';
                     registerForm.style.display = 'none';
                     fetchPeliculas();
                 } else if (data.error) {
+                    messageDiv.style.color = 'red';
                     messageDiv.textContent = 'Error: ' + data.error;
                 }
             })
             .catch(error => {
+                messageDiv.style.color = 'red';
                 messageDiv.textContent = 'Error en la conexión';
                 console.error('Error:', error);
             });
         });
 
-        // Registro
         registerForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const nombre = document.getElementById('nombre').value;
-            const email = document.getElementById('reg_email').value;
-            const password = document.getElementById('reg_password').value;
+            const nombre = document.getElementById('nombreRegister').value;
+            const email = document.getElementById('emailRegister').value;
+            const password = document.getElementById('passwordRegister').value;
 
             fetch('http://68.221.131.53:5000/auth/register', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({nombre: nombre, email: email, password: password})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre: nombre, email: email, password: password })
             })
-            .then(res => res.json())
+            .then(response => response.json())
             .then(data => {
-                if(data.mensaje){
-                    registerMessage.textContent = data.mensaje;
+                if (data.mensaje) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = data.mensaje + " Por favor, haz login.";
                     registerForm.reset();
-                } else if (data.error){
-                    registerMessage.textContent = 'Error: ' + data.error;
+                } else if (data.error) {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = 'Error: ' + data.error;
                 }
             })
-            .catch(err => {
-                registerMessage.textContent = 'Error en la conexión';
+            .catch(error => {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Error en la conexión';
+                console.error('Error:', error);
             });
         });
 
-        // Cargar películas
         function fetchPeliculas() {
             fetch('http://68.221.131.53:5000/peliculas/')
             .then(response => response.json())
@@ -186,19 +184,19 @@
                 });
             })
             .catch(error => {
+                messageDiv.style.color = 'red';
                 messageDiv.textContent = 'Error al cargar películas';
                 console.error(error);
             });
         }
 
-        // Cerrar sesión
         function cerrarSesion() {
             localStorage.removeItem('token');
             location.reload();
         }
 
-        // Si ya tiene token, mostrar cartelera al cargar
-        if(localStorage.getItem("token")) {
+        // Si viene de pelicula.html, muestra directamente la cartelera
+        if (window.location.hash === "#cartelera" && localStorage.getItem("token")) {
             loginForm.style.display = 'none';
             registerForm.style.display = 'none';
             peliculasSection.style.display = 'block';
