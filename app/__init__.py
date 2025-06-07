@@ -29,4 +29,8 @@ def create_app():
     def pelicula():
         return send_from_directory(os.path.join(app.root_path, 'static'), 'pelicula.html')
 
+    @app.route('/index.html')
+    def index_html():
+        return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
+
     return app
