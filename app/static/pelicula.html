@@ -32,18 +32,8 @@
 
                 cargarPoster(pelicula.titulo);
 
-                const sesionesDiv = document.getElementById("sesiones");
-                sesionesDiv.innerHTML = "";
+                cargarAsientos(id);
 
-                if (data.sesiones.length === 0) {
-                    sesionesDiv.innerHTML = "<p>No hay sesiones disponibles.</p>";
-                } else {
-                    data.sesiones.forEach(sesion => {
-                        const div = document.createElement("div");
-                        div.innerHTML = `📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala} <button onclick="reservarSesion(${sesion.id})">Reservar</button>`;
-                        sesionesDiv.appendChild(div);
-                    });
-                }
             } catch (error) {
                 document.body.innerHTML = "<p>Error al cargar los datos de la película.</p>";
                 console.error(error);
@@ -68,39 +58,100 @@
             }
         }
 
-        async function reservarSesion(sesionId) {
+        async function cargarAsientos(idSesion) {
             const token = localStorage.getItem("token");
-            if (!token) {
-                alert("Debes iniciar sesión para reservar.");
-                return;
-            }
-
-            const asiento = prompt("Introduce el número de asiento que quieres reservar:");
-
-            if (!asiento) {
-                alert("Reserva cancelada, debes indicar un asiento.");
-                return;
-            }
-
+            // Obtenemos sesiones (con asientos) para esta película
             try {
-                const response = await fetch(`/reservas`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ id_sesion: sesionId, asientos: asiento })
+                const responseSesiones = await fetch(`/peliculas/${idSesion}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const dataSesiones = await responseSesiones.json();
+                const sesionesDiv = document.getElementById("sesiones");
+                sesionesDiv.innerHTML = "";
+
+                if (dataSesiones.sesiones.length === 0) {
+                    sesionesDiv.innerHTML = "<p>No hay sesiones disponibles.</p>";
+                    return;
+                }
+
+                dataSesiones.sesiones.forEach(async (sesion) => {
+                    const divSesion = document.createElement("div");
+                    divSesion.innerHTML = `<h4>Sesión: 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}</h4>`;
+
+                    // Cargar asientos para esta sesión
+                    const responseAsientos = await fetch(`/asientos/${sesion.id}`, {
+                        headers: { "Authorization": `Bearer ${token}` }
+                    });
+                    const dataAsientos = await responseAsientos.json();
+
+                    const asientosDisponibles = dataAsientos.filter(a => !a.reservado);
+                    const asientosReservados = dataAsientos.filter(a => a.reservado);
+
+                    const divAsientos = document.createElement("div");
+                    divAsientos.innerHTML = "<p>Seleccione asientos disponibles:</p>";
+
+                    asientosDisponibles.forEach(asiento => {
+                        const btn = document.createElement("button");
+                        btn.textContent = asiento.numero_asiento;
+                        btn.style.margin = "3px";
+                        btn.onclick = () => {
+                            if (btn.classList.contains("seleccionado")) {
+                                btn.classList.remove("seleccionado");
+                            } else {
+                                btn.classList.add("seleccionado");
+                            }
+                        };
+                        divAsientos.appendChild(btn);
+                    });
+
+                    divSesion.appendChild(divAsientos);
+
+                    // Botón reservar
+                    const btnReservar = document.createElement("button");
+                    btnReservar.textContent = "Reservar asientos seleccionados";
+                    btnReservar.style.marginTop = "10px";
+                    btnReservar.onclick = async () => {
+                        const seleccionados = Array.from(divAsientos.querySelectorAll("button.seleccionado"))
+                            .map(b => b.textContent);
+
+                        if (seleccionados.length === 0) {
+                            alert("Selecciona al menos un asiento.");
+                            return;
+                        }
+
+                        // Crear reserva
+                        try {
+                            const resp = await fetch("/reservas", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    id_sesion: sesion.id,
+                                    asientos: seleccionados.join(',')
+                                })
+                            });
+                            const resJson = await resp.json();
+
+                            if (resp.ok) {
+                                alert("Reserva creada con éxito.");
+                                // Actualizar la vista de asientos
+                                cargarAsientos(idSesion);
+                            } else {
+                                alert("Error: " + (resJson.error || "No se pudo reservar"));
+                            }
+                        } catch (error) {
+                            alert("Error en la conexión.");
+                        }
+                    };
+                    divSesion.appendChild(btnReservar);
+
+                    sesionesDiv.appendChild(divSesion);
                 });
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert("Reserva realizada correctamente.");
-                } else {
-                    alert("Error: " + (data.error || "No se pudo reservar"));
-                }
             } catch (error) {
-                alert("Error en la conexión al reservar.");
+                console.error("Error al cargar sesiones o asientos:", error);
             }
         }
 

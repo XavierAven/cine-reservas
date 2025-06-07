@@ -36,6 +36,8 @@ class Sesion(db.Model):
     hora = db.Column(db.Time, nullable=False)
     sala = db.Column(db.String(50), nullable=False)
 
+    asientos = db.relationship('Asiento', backref='sesion', lazy=True)
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -44,11 +46,25 @@ class Sesion(db.Model):
             'sala': self.sala
         }
 
+class Asiento(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    id_sesion = db.Column(db.Integer, db.ForeignKey('sesion.id'), nullable=False)
+    numero_asiento = db.Column(db.String(10), nullable=False)
+    reservado = db.Column(db.Boolean, default=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'id_sesion': self.id_sesion,
+            'numero_asiento': self.numero_asiento,
+            'reservado': self.reservado
+        }
+
 class Reserva(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     id_sesion = db.Column(db.Integer, db.ForeignKey('sesion.id'), nullable=False)
-    asientos = db.Column(db.String(100), nullable=False)
+    asientos = db.Column(db.String(100), nullable=False)  # Lista o string de asientos reservados
     fecha_reserva = db.Column(db.DateTime, nullable=False)
 
 class Pago(db.Model):

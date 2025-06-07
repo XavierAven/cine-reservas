@@ -8,16 +8,19 @@ def create_app():
     app.config.from_pyfile('../config.py')
 
     CORS(app)
+
     db.init_app(app)
 
     from . import models
     from .routes import auth
     from .routes import movies
-    from .routes import reservas  # <-- añadir aquí
+    from .routes import reservas
+    from .routes import pagos
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(movies.movies_bp)
-    app.register_blueprint(reservas.reservas_bp)  # <-- registrar aquí
+    app.register_blueprint(reservas.reservas_bp)
+    app.register_blueprint(pagos.pagos_bp)
 
     with app.app_context():
         db.create_all()
@@ -34,8 +37,13 @@ def create_app():
     def perfil():
         return send_from_directory(os.path.join(app.root_path, 'static'), 'perfil.html')
 
-    @app.route('/index.html')
-    def index_html():
-        return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
+    # Nueva ruta para obtener asientos de una sesión
+    @app.route('/asientos/<int:id_sesion>', methods=['GET'])
+    def obtener_asientos(id_sesion):
+        from app.models import Asiento
+        asientos = Asiento.query.filter_by(id_sesion=id_sesion).all()
+        return {
+            "asientos": [a.to_dict() for a in asientos]
+        }
 
     return app

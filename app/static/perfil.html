@@ -1,105 +1,166 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Perfil de Usuario</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 30px; background-color: #f5f5f5; color: #333; }
         h1, h2 { color: #004aad; }
-        button {
-            background-color: #004aad; color: white; border: none; padding: 8px 12px;
-            cursor: pointer; border-radius: 4px; font-size: 14px; margin-left: 10px;
-        }
+        .reserva { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+        button { background-color: #004aad; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-size: 14px; }
         button:hover { background-color: #00337a; }
-        .reserva { background: #fff; margin-bottom: 12px; padding: 12px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+        label, input { display: block; margin-bottom: 10px; }
+        input { padding: 8px; width: 300px; border-radius: 4px; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
     <h1>Perfil de Usuario</h1>
-    <p><strong>Nombre:</strong> <span id="nombre"></span></p>
-    <p><strong>Email:</strong> <span id="email"></span></p>
+    <div id="usuarioInfo"></div>
 
-    <h2>Mis Reservas</h2>
-    <div id="reservas"></div>
+    <h2>Reservas</h2>
+    <div id="reservasList"></div>
 
-    <p><a href="index.html#cartelera" style="background:#004aad; color:#fff; padding:8px 15px; border-radius:5px; text-decoration:none;">⬅️ Volver a la cartelera</a></p>
+    <h2>Simulación de Pago</h2>
+    <form id="pagoForm">
+        <label>Número de tarjeta:</label>
+        <input type="text" id="numeroTarjeta" required maxlength="16" placeholder="1234 5678 9012 3456" />
+
+        <label>Fecha de caducidad (MM/AA):</label>
+        <input type="text" id="fechaCaducidad" required maxlength="5" placeholder="12/25" />
+
+        <label>CCV:</label>
+        <input type="text" id="ccv" required maxlength="3" placeholder="123" />
+
+        <label>Reserva a pagar (ID):</label>
+        <input type="number" id="idReservaPago" required min="1" />
+
+        <button type="submit">Simular Pago</button>
+    </form>
+
+    <div id="mensajePago"></div>
+
+    <button onclick="volverCartelera()" style="margin-top:20px;">⬅️ Volver a la cartelera</button>
 
     <script>
+        const usuarioInfoDiv = document.getElementById('usuarioInfo');
+        const reservasListDiv = document.getElementById('reservasList');
+        const pagoForm = document.getElementById('pagoForm');
+        const mensajePago = document.getElementById('mensajePago');
+
         async function cargarPerfil() {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('Debes iniciar sesión.');
                 window.location.href = 'index.html';
                 return;
             }
 
-            // Obtener datos usuario
-            const perfilRes = await fetch('http://68.221.131.53:5000/auth/profile', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (!perfilRes.ok) {
-                alert('Error al cargar perfil.');
-                return;
-            }
-            const perfil = await perfilRes.json();
-            document.getElementById('nombre').textContent = perfil.nombre;
-            document.getElementById('email').textContent = perfil.email;
-
-            // Obtener reservas
-            const reservasRes = await fetch('http://68.221.131.53:5000/reservas', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (!reservasRes.ok) {
-                document.getElementById('reservas').textContent = 'No hay reservas.';
-                return;
-            }
-            const reservas = await reservasRes.json();
-
-            const reservasDiv = document.getElementById('reservas');
-            reservasDiv.innerHTML = '';
-
-            if (reservas.length === 0) {
-                reservasDiv.textContent = 'No tienes reservas.';
-                return;
-            }
-
-            reservas.forEach(async (reserva) => {
-                // Obtener info de sesión y película
-                const sesionRes = await fetch(`http://68.221.131.53:5000/peliculas/${reserva.id_sesion}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
+            try {
+                const responseUser = await fetch('/auth/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                // La ruta correcta es a sesión, no película, corregiremos más abajo
-                // Por ahora mostramos reserva básica:
-                const div = document.createElement('div');
-                div.className = 'reserva';
-                div.innerHTML = `
-                    <p><strong>Asiento:</strong> ${reserva.asientos}</p>
-                    <p><strong>Fecha Reserva:</strong> ${new Date(reserva.fecha_reserva).toLocaleString()}</p>
-                    <button onclick="cancelarReserva(${reserva.id})">Anular Reserva</button>
-                `;
-                reservasDiv.appendChild(div);
-            });
+                const userData = await responseUser.json();
+                usuarioInfoDiv.innerHTML = `<p><strong>Nombre:</strong> ${userData.nombre}</p>
+                                            <p><strong>Email:</strong> ${userData.email}</p>`;
+
+                const responseReservas = await fetch('/reservas/usuario', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const reservas = await responseReservas.json();
+
+                if (reservas.length === 0) {
+                    reservasListDiv.innerHTML = '<p>No tienes reservas.</p>';
+                } else {
+                    reservasListDiv.innerHTML = '';
+                    reservas.forEach(reserva => {
+                        const div = document.createElement('div');
+                        div.classList.add('reserva');
+                        div.innerHTML = `
+                            <p><strong>ID Reserva:</strong> ${reserva.id}</p>
+                            <p><strong>ID Sesión:</strong> ${reserva.id_sesion}</p>
+                            <p><strong>Asientos:</strong> ${reserva.asientos}</p>
+                            <p><strong>Fecha Reserva:</strong> ${reserva.fecha_reserva}</p>
+                            <button onclick="anularReserva(${reserva.id})">Anular reserva</button>
+                        `;
+                        reservasListDiv.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando perfil:', error);
+            }
         }
 
-        async function cancelarReserva(id) {
+        async function anularReserva(idReserva) {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('Debes iniciar sesión.');
-                window.location.href = 'index.html';
                 return;
             }
-            if (!confirm('¿Seguro que quieres anular esta reserva?')) return;
-
-            const res = await fetch(`http://68.221.131.53:5000/reservas/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (res.ok) {
-                alert('Reserva anulada correctamente.');
-                cargarPerfil();
-            } else {
-                alert('Error al anular la reserva.');
+            if (!confirm('¿Seguro que quieres anular esta reserva?')) {
+                return;
             }
+            try {
+                const response = await fetch(`/reservas/${idReserva}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Reserva anulada correctamente.');
+                    cargarPerfil();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo anular'));
+                }
+            } catch (error) {
+                alert('Error en la conexión.');
+            }
+        }
+
+        pagoForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            mensajePago.textContent = '';
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Debes iniciar sesión para pagar.');
+                return;
+            }
+
+            const idReserva = document.getElementById('idReservaPago').value;
+            const numeroTarjeta = document.getElementById('numeroTarjeta').value;
+            const fechaCaducidad = document.getElementById('fechaCaducidad').value;
+            const ccv = document.getElementById('ccv').value;
+
+            try {
+                const response = await fetch('/pagos/simular', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        id_reserva: idReserva,
+                        numero_tarjeta: numeroTarjeta,
+                        fecha_caducidad: fechaCaducidad,
+                        ccv: ccv
+                    })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    mensajePago.style.color = 'green';
+                    mensajePago.textContent = data.mensaje;
+                } else {
+                    mensajePago.style.color = 'red';
+                    mensajePago.textContent = data.error || 'Error en el pago';
+                }
+            } catch (error) {
+                mensajePago.style.color = 'red';
+                mensajePago.textContent = 'Error en la conexión';
+            }
+        });
+
+        function volverCartelera() {
+            window.location.href = 'index.html#cartelera';
         }
 
         window.onload = cargarPerfil;
