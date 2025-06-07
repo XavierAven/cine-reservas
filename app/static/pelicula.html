@@ -2,50 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Detalle Película</title>
-    <style>
-        body { font-family: Arial; margin: 30px; background: #f9f9f9; color: #222; }
-        h1, h2 { color: #004aad; }
-        #detalle, #sesiones { margin-top: 20px; }
-        li { margin: 5px 0; }
-    </style>
+    <title>Detalle de Película</title>
+    <script>
+        async function cargarDatos() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+
+            const response = await fetch(`/api/peliculas/${id}`);
+            const data = await response.json();
+
+            document.getElementById("titulo").textContent = data.titulo;
+            document.getElementById("genero").textContent = data.genero;
+            document.getElementById("duracion").textContent = data.duracion + " min";
+            document.getElementById("descripcion").textContent = data.descripcion;
+            document.getElementById("director").textContent = data.director;
+            document.getElementById("actores").textContent = data.actores_principales;
+
+            const sesionesDiv = document.getElementById("sesiones");
+            sesionesDiv.innerHTML = "";
+
+            data.sesiones.forEach(sesion => {
+                const div = document.createElement("div");
+                div.innerHTML = `📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}`;
+                sesionesDiv.appendChild(div);
+            });
+        }
+
+        window.onload = cargarDatos;
+    </script>
 </head>
 <body>
-    <h1 id="titulo">Cargando...</h1>
-    <div id="detalle">
-        <p><strong>Género:</strong> <span id="genero"></span></p>
-        <p><strong>Duración:</strong> <span id="duracion"></span> min</p>
-        <p><strong>Director:</strong> <span id="director"></span></p>
-        <p><strong>Actores principales:</strong> <span id="actores"></span></p>
-        <p><strong>Descripción:</strong> <span id="descripcion"></span></p>
-    </div>
-    <div id="sesiones">
-        <h2>Sesiones disponibles</h2>
-        <ul id="listaSesiones"></ul>
-    </div>
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get("id");
-
-        fetch(`/peliculas/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                const p = data.pelicula;
-                document.getElementById("titulo").textContent = p.titulo;
-                document.getElementById("genero").textContent = p.genero;
-                document.getElementById("duracion").textContent = p.duracion;
-                document.getElementById("director").textContent = p.director;
-                document.getElementById("actores").textContent = p.actores_principales;
-                document.getElementById("descripcion").textContent = p.descripcion;
-
-                const sesiones = data.sesiones;
-                const lista = document.getElementById("listaSesiones");
-                sesiones.forEach(s => {
-                    const li = document.createElement("li");
-                    li.textContent = `Fecha: ${s.fecha}, Hora: ${s.hora}, Sala: ${s.sala}`;
-                    lista.appendChild(li);
-                });
-            });
-    </script>
+    <h1 id="titulo"></h1>
+    <p><strong>Género:</strong> <span id="genero"></span></p>
+    <p><strong>Duración:</strong> <span id="duracion"></span></p>
+    <p><strong>Director:</strong> <span id="director"></span></p>
+    <p><strong>Actores principales:</strong> <span id="actores"></span></p>
+    <p><strong>Sinopsis:</strong></p>
+    <p id="descripcion"></p>
+    <h3>Sesiones disponibles</h3>
+    <div id="sesiones"></div>
 </body>
 </html>
