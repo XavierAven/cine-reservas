@@ -41,4 +41,12 @@ def create_app():
     def perfil():
         return send_from_directory(os.path.join(app.root_path, 'static'), 'perfil.html')
 
+    @app.route('/asientos/<int:id_sesion>', methods=['GET'])
+    def obtener_asientos(id_sesion):
+        from app.models import Asiento
+        asientos = Asiento.query.filter_by(id_sesion=id_sesion).all()
+        return {
+            "asientos": [a.to_dict() for a in asientos]
+        }
+
     return app
