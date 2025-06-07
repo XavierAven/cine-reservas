@@ -73,18 +73,16 @@
                     return;
                 }
 
-                dataSesiones.sesiones.forEach(async (sesion) => {
+                for (const sesion of dataSesiones.sesiones) {
                     const divSesion = document.createElement("div");
                     divSesion.innerHTML = `<h4>Sesión: 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}</h4>`;
 
-                    // Cargar asientos para esta sesión
                     const responseAsientos = await fetch(`/asientos/${sesion.id}`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     const dataAsientos = await responseAsientos.json();
 
                     const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
-                    const asientosReservados = dataAsientos.asientos.filter(a => a.reservado);
 
                     const divAsientos = document.createElement("div");
                     divAsientos.innerHTML = "<p>Seleccione asientos disponibles:</p>";
@@ -94,18 +92,13 @@
                         btn.textContent = asiento.numero_asiento;
                         btn.style.margin = "3px";
                         btn.onclick = () => {
-                            if (btn.classList.contains("seleccionado")) {
-                                btn.classList.remove("seleccionado");
-                            } else {
-                                btn.classList.add("seleccionado");
-                            }
+                            btn.classList.toggle("seleccionado");
                         };
                         divAsientos.appendChild(btn);
                     });
 
                     divSesion.appendChild(divAsientos);
 
-                    // Botón reservar
                     const btnReservar = document.createElement("button");
                     btnReservar.textContent = "Reservar asientos seleccionados";
                     btnReservar.style.marginTop = "10px";
@@ -145,12 +138,10 @@
                     divSesion.appendChild(btnReservar);
 
                     sesionesDiv.appendChild(divSesion);
-                });
+                }
 
             } catch (error) {
                 console.error("Error al cargar sesiones o asientos:", error);
-                const sesionesDiv = document.getElementById("sesiones");
-                sesionesDiv.innerHTML = "<p>Error al cargar las sesiones.</p>";
             }
         }
 
