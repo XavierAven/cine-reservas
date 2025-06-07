@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.models import Reserva, Asiento, Sesion
+from app.models import Reserva, Asiento
 from app.database import db
 from .auth import token_required
 import datetime
@@ -11,31 +11,33 @@ reservas_bp = Blueprint('reservas', __name__, url_prefix='/reservas')
 def crear_reserva(current_user):
     data = request.get_json()
     id_sesion = data.get('id_sesion')
-    asientos = data.get('asientos')  # Esperamos lista de asientos (array o string separado)
+    num_entradas = data.get('num_entradas')
 
-    if not id_sesion or not asientos:
+    if not id_sesion or not num_entradas:
         return jsonify({'error': 'Faltan datos'}), 400
 
-    # Convertir a lista si es string separado por comas
-    if isinstance(asientos, str):
-        asientos = [a.strip() for a in asientos.split(',')]
+    try:
+        num_entradas = int(num_entradas)
+        if num_entradas <= 0:
+            return jsonify({'error': 'Número de entradas inválido'}), 400
+    except:
+        return jsonify({'error': 'Número de entradas debe ser un entero'}), 400
 
-    # Comprobar si los asientos están disponibles
-    for asiento_num in asientos:
-        asiento = Asiento.query.filter_by(id_sesion=id_sesion, numero_asiento=asiento_num).first()
-        if asiento is None:
-            # Crear asiento si no existe
-            nuevo_asiento = Asiento(id_sesion=id_sesion, numero_asiento=asiento_num, reservado=True)
-            db.session.add(nuevo_asiento)
-        elif asiento.reservado:
-            return jsonify({'error': f'El asiento {asiento_num} ya está reservado'}), 400
-        else:
-            asiento.reservado = True  # Marcar como reservado
+    # Obtener asientos disponibles para esa sesión
+    asientos_disponibles = Asiento.query.filter_by(id_sesion=id_sesion, reservado=False).limit(num_entradas).all()
+
+    if len(asientos_disponibles) < num_entradas:
+        return jsonify({'error': 'No hay suficientes asientos disponibles'}), 400
+
+    # Reservar los asientos
+    for asiento in asientos_disponibles:
+        asiento.reservado = True
+        db.session.add(asiento)
 
     reserva = Reserva(
         id_usuario=current_user.id,
         id_sesion=id_sesion,
-        asientos=','.join(asientos),
+        asientos=','.join([str(a.numero_asiento) for a in asientos_disponibles]),
         fecha_reserva=datetime.datetime.utcnow()
     )
     db.session.add(reserva)
