@@ -10,7 +10,7 @@
             const id = params.get("id");
 
             try {
-                const response = await fetch(`/api/peliculas/${id}`);
+                const response = await fetch(`/peliculas/${id}`);
                 const data = await response.json();
 
                 document.getElementById("titulo").textContent = data.titulo;
