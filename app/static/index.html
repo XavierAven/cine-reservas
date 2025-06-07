@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -77,6 +78,7 @@
     <div id="peliculasSection" style="display:none;">
         <h2>Películas</h2>
         <ul id="peliculasList"></ul>
+        <button onclick="cerrarSesion()">🔒 Cerrar sesión</button>
     </div>
 
     <script>
@@ -85,16 +87,6 @@
         const peliculasSection = document.getElementById('peliculasSection');
         const peliculasList = document.getElementById('peliculasList');
         let tokenGlobal = null;
-
-        // ⬇️ Añadido: si ya hay token guardado, cargar cartelera directamente
-        const tokenEnStorage = localStorage.getItem('token');
-        if (tokenEnStorage) {
-            tokenGlobal = tokenEnStorage;
-            loginForm.style.display = 'none';
-            peliculasSection.style.display = 'block';
-            messageDiv.textContent = 'Login correcto! Cargando cartelera...';
-            fetchPeliculas();
-        }
 
         loginForm.addEventListener('submit', function(event) {
             event.preventDefault();
@@ -145,17 +137,11 @@
                 console.error(error);
             });
         }
-        // Si ya hay un token, oculta el login y muestra la cartelera directamente
-window.onload = function () {
-    const tokenGuardado = localStorage.getItem('token');
-    if (tokenGuardado) {
-        tokenGlobal = tokenGuardado;
-        loginForm.style.display = 'none';
-        peliculasSection.style.display = 'block';
-        fetchPeliculas();
-    }
-};
 
+        function cerrarSesion() {
+            localStorage.removeItem('token');
+            location.reload();
+        }
     </script>
 </body>
 </html>
