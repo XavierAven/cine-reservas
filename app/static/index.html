@@ -145,6 +145,17 @@
                 console.error(error);
             });
         }
+        // Si ya hay un token, oculta el login y muestra la cartelera directamente
+window.onload = function () {
+    const tokenGuardado = localStorage.getItem('token');
+    if (tokenGuardado) {
+        tokenGlobal = tokenGuardado;
+        loginForm.style.display = 'none';
+        peliculasSection.style.display = 'block';
+        fetchPeliculas();
+    }
+};
+
     </script>
 </body>
 </html>
