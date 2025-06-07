@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <title>Detalle de Película</title>
     <link rel="stylesheet" href="pelicula.css">
+    <style>
+        button.seleccionado {
+            background-color: #28a745; /* verde */
+            color: white;
+        }
+    </style>
     <script>
         async function cargarDatos() {
             const params = new URLSearchParams(window.location.search);
@@ -82,7 +88,6 @@
                     });
                     const dataAsientos = await responseAsientos.json();
 
-                    // dataAsientos viene como { asientos: [...] }, por eso accedemos a .asientos
                     const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
 
                     const divAsientos = document.createElement("div");
@@ -143,8 +148,6 @@
 
             } catch (error) {
                 console.error("Error al cargar sesiones o asientos:", error);
-                const sesionesDiv = document.getElementById("sesiones");
-                sesionesDiv.innerHTML = "<p>Error al cargar sesiones o asientos.</p>";
             }
         }
 
