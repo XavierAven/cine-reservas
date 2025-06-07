@@ -8,17 +8,23 @@
         async function cargarDatos() {
             const params = new URLSearchParams(window.location.search);
             const id = params.get("id");
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                window.location.href = "index.html";
+                return;
+            }
 
             try {
                 const response = await fetch(`/peliculas/${id}`);
                 const data = await response.json();
 
-                document.getElementById("titulo").textContent = data.titulo;
-                document.getElementById("genero").textContent = data.genero;
-                document.getElementById("duracion").textContent = data.duracion + " min";
-                document.getElementById("descripcion").textContent = data.descripcion;
-                document.getElementById("director").textContent = data.director;
-                document.getElementById("actores").textContent = data.actores_principales;
+                document.getElementById("titulo").textContent = data.pelicula.titulo;
+                document.getElementById("genero").textContent = data.pelicula.genero;
+                document.getElementById("duracion").textContent = data.pelicula.duracion + " min";
+                document.getElementById("descripcion").textContent = data.pelicula.descripcion;
+                document.getElementById("director").textContent = data.pelicula.director;
+                document.getElementById("actores").textContent = data.pelicula.actores_principales;
 
                 const sesionesDiv = document.getElementById("sesiones");
                 sesionesDiv.innerHTML = "";
@@ -38,6 +44,10 @@
             }
         }
 
+        function volverACartelera() {
+            window.location.href = "index.html";
+        }
+
         window.onload = cargarDatos;
     </script>
 </head>
@@ -54,7 +64,9 @@
     <div id="sesiones"></div>
 
     <p>
-  <a href="index.html">⬅️ Volver a la cartelera</a>
-
-</p>
-
+        <a href="index.html" style="display:inline-block; margin-top: 30px; background-color:#004aad; color:white; padding:10px 15px; border-radius:5px; text-decoration:none;">
+            ⬅️ Volver a la cartelera
+        </a>
+    </p>
+</body>
+</html>
