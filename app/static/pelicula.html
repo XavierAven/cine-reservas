@@ -36,8 +36,6 @@
                 document.getElementById("director").textContent = pelicula.director;
                 document.getElementById("actores").textContent = pelicula.actores_principales;
 
-                cargarPoster(pelicula.titulo);
-
                 cargarSesionesYAsientos(id);
 
             } catch (error) {
@@ -108,7 +106,7 @@
                     const btnReservar = document.createElement("button");
                     btnReservar.textContent = "Reservar asientos seleccionados";
                     btnReservar.style.marginTop = "10px";
-                    btnReservar.onclick = async () => {
+                    btnReservar.onclick = () => {
                         const seleccionados = Array.from(divAsientos.querySelectorAll("button.seleccionado"))
                             .map(b => b.textContent);
 
@@ -117,29 +115,10 @@
                             return;
                         }
 
-                        try {
-                            const resp = await fetch("/reservas", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    id_sesion: sesion.id,
-                                    asientos: seleccionados.join(',')
-                                })
-                            });
-                            const resJson = await resp.json();
-
-                            if (resp.ok) {
-                                alert("Reserva creada con éxito.");
-                                cargarSesionesYAsientos(idPelicula);
-                            } else {
-                                alert("Error: " + (resJson.error || "No se pudo reservar"));
-                            }
-                        } catch (error) {
-                            alert("Error en la conexión.");
-                        }
+                        // Guardar datos y redirigir a la página de selección avanzada
+                        localStorage.setItem("id_sesion", sesion.id);
+                        localStorage.setItem("asientos_seleccionados", JSON.stringify(seleccionados));
+                        window.location.href = "asientos.html?id_sesion=" + sesion.id;
                     };
                     divSesion.appendChild(btnReservar);
 
