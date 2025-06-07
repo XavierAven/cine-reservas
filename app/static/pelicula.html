@@ -37,7 +37,8 @@
                 document.getElementById("actores").textContent = pelicula.actores_principales;
 
                 cargarPoster(pelicula.titulo);
-                cargarSesiones(id);
+
+                cargarSesionesYAsientos(id);
 
             } catch (error) {
                 document.body.innerHTML = "<p>Error al cargar los datos de la película.</p>";
@@ -63,34 +64,61 @@
             }
         }
 
-        async function cargarSesiones(idPelicula) {
+        async function cargarSesionesYAsientos(idPelicula) {
             const token = localStorage.getItem("token");
             try {
-                const response = await fetch(`/peliculas/${idPelicula}`, {
+                const responseSesiones = await fetch(`/peliculas/${idPelicula}`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                const data = await response.json();
+                const dataSesiones = await responseSesiones.json();
                 const sesionesDiv = document.getElementById("sesiones");
                 sesionesDiv.innerHTML = "";
 
-                if (!data.sesiones || data.sesiones.length === 0) {
+                if (!dataSesiones.sesiones || dataSesiones.sesiones.length === 0) {
                     sesionesDiv.innerHTML = "<p>No hay sesiones disponibles.</p>";
                     return;
                 }
 
-                for (const sesion of data.sesiones) {
+                for (const sesion of dataSesiones.sesiones) {
                     const divSesion = document.createElement("div");
                     divSesion.innerHTML = `<h4>Sesión: 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}</h4>`;
 
-                    // Botón reservar entradas (número)
+                    const responseAsientos = await fetch(`/asientos/${sesion.id}`, {
+                        headers: { "Authorization": `Bearer ${token}` }
+                    });
+                    const dataAsientos = await responseAsientos.json();
+
+                    const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
+                    const totalDisponibles = asientosDisponibles.length;
+
+                    const infoDisponibles = document.createElement('p');
+                    infoDisponibles.textContent = `Asientos disponibles: ${totalDisponibles}`;
+                    divSesion.appendChild(infoDisponibles);
+
+                    const divAsientos = document.createElement("div");
+                    divAsientos.innerHTML = "<p>Seleccione asientos disponibles:</p>";
+
+                    asientosDisponibles.forEach(asiento => {
+                        const btn = document.createElement("button");
+                        btn.textContent = asiento.numero_asiento;
+                        btn.style.margin = "3px";
+                        btn.onclick = () => {
+                            btn.classList.toggle("seleccionado");
+                        };
+                        divAsientos.appendChild(btn);
+                    });
+
+                    divSesion.appendChild(divAsientos);
+
                     const btnReservar = document.createElement("button");
-                    btnReservar.textContent = "Reservar entradas";
+                    btnReservar.textContent = "Reservar asientos seleccionados";
                     btnReservar.style.marginTop = "10px";
                     btnReservar.onclick = async () => {
-                        const numEntradasStr = prompt("¿Cuántas entradas deseas reservar?");
-                        const numEntradas = parseInt(numEntradasStr);
-                        if (!numEntradas || numEntradas <= 0) {
-                            alert("Introduce un número válido de entradas.");
+                        const seleccionados = Array.from(divAsientos.querySelectorAll("button.seleccionado"))
+                            .map(b => b.textContent);
+
+                        if (seleccionados.length === 0) {
+                            alert("Selecciona al menos un asiento.");
                             return;
                         }
 
@@ -103,14 +131,14 @@
                                 },
                                 body: JSON.stringify({
                                     id_sesion: sesion.id,
-                                    num_entradas: numEntradas
+                                    asientos: seleccionados.join(',')
                                 })
                             });
                             const resJson = await resp.json();
 
                             if (resp.ok) {
-                                alert(`Reserva de ${numEntradas} entradas creada con éxito.`);
-                                cargarSesiones(idPelicula);
+                                alert("Reserva creada con éxito.");
+                                cargarSesionesYAsientos(idPelicula);
                             } else {
                                 alert("Error: " + (resJson.error || "No se pudo reservar"));
                             }
@@ -118,12 +146,13 @@
                             alert("Error en la conexión.");
                         }
                     };
-
                     divSesion.appendChild(btnReservar);
+
                     sesionesDiv.appendChild(divSesion);
                 }
+
             } catch (error) {
-                console.error("Error al cargar sesiones:", error);
+                console.error("Error al cargar sesiones o asientos:", error);
             }
         }
 

@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from .database import db
 import os
+from app.models import Asiento
 
 def create_app():
     app = Flask(__name__, static_folder='app/static')
@@ -43,8 +44,16 @@ def create_app():
 
     @app.route('/asientos/<int:id_sesion>', methods=['GET'])
     def obtener_asientos(id_sesion):
-        from app.models import Asiento
         asientos = Asiento.query.filter_by(id_sesion=id_sesion).all()
+        if len(asientos) < 50:
+            existentes = {a.numero_asiento for a in asientos}
+            for i in range(1, 51):
+                if i not in existentes:
+                    nuevo_asiento = Asiento(id_sesion=id_sesion, numero_asiento=i, reservado=False)
+                    db.session.add(nuevo_asiento)
+            db.session.commit()
+            asientos = Asiento.query.filter_by(id_sesion=id_sesion).all()
+
         return jsonify({
             "asientos": [a.to_dict() for a in asientos]
         })
