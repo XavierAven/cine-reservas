@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Detalle de Película</title>
-    <link rel="stylesheet" href="pelicula.css">
+    <link rel="stylesheet" href="pelicula.css" />
     <style>
         button.seleccionado {
             background-color: #28a745; /* verde */
@@ -22,8 +22,8 @@
             }
 
             try {
-                const response = await fetch(/peliculas/${id}, {
-                    headers: { "Authorization": Bearer ${token} }
+                const response = await fetch(`/peliculas/${id}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
                 });
                 const data = await response.json();
 
@@ -37,9 +37,7 @@
                 document.getElementById("actores").textContent = pelicula.actores_principales;
 
                 cargarPoster(pelicula.titulo);
-
-                cargarSesionesYAsientos(id);
-
+                cargarSesiones(id);
             } catch (error) {
                 document.body.innerHTML = "<p>Error al cargar los datos de la película.</p>";
                 console.error(error);
@@ -48,7 +46,7 @@
 
         async function cargarPoster(titulo) {
             const apiKey = "9e446b40";
-            const url = https://www.omdbapi.com/?t=${encodeURIComponent(titulo)}&apikey=${apiKey};
+            const url = `https://www.omdbapi.com/?t=${encodeURIComponent(titulo)}&apikey=${apiKey}`;
 
             try {
                 const response = await fetch(url);
@@ -64,90 +62,76 @@
             }
         }
 
-        async function cargarSesionesYAsientos(idPelicula) {
+        async function cargarSesiones(idPelicula) {
             const token = localStorage.getItem("token");
             try {
-                const responseSesiones = await fetch(/peliculas/${idPelicula}, {
-                    headers: { "Authorization": Bearer ${token} }
+                const response = await fetch(`/peliculas/${idPelicula}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
                 });
-                const dataSesiones = await responseSesiones.json();
+                const data = await response.json();
                 const sesionesDiv = document.getElementById("sesiones");
                 sesionesDiv.innerHTML = "";
 
-                if (!dataSesiones.sesiones || dataSesiones.sesiones.length === 0) {
+                if (!data.sesiones || data.sesiones.length === 0) {
                     sesionesDiv.innerHTML = "<p>No hay sesiones disponibles.</p>";
                     return;
                 }
 
-                for (const sesion of dataSesiones.sesiones) {
+                for (const sesion of data.sesiones) {
                     const divSesion = document.createElement("div");
-                    divSesion.innerHTML = <h4>Sesión: 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}</h4>;
+                    divSesion.innerHTML = `<h4>Sesión: 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}</h4>`;
 
-                    const responseAsientos = await fetch(/asientos/${sesion.id}, {
-                        headers: { "Authorization": Bearer ${token} }
-                    });
-                    const dataAsientos = await responseAsientos.json();
-
-                    const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
-
-                    const divAsientos = document.createElement("div");
-                    divAsientos.innerHTML = "<p>Seleccione asientos disponibles:</p>";
-
-                    asientosDisponibles.forEach(asiento => {
-                        const btn = document.createElement("button");
-                        btn.textContent = asiento.numero_asiento;
-                        btn.style.margin = "3px";
-                        btn.onclick = () => {
-                            btn.classList.toggle("seleccionado");
-                        };
-                        divAsientos.appendChild(btn);
-                    });
-
-                    divSesion.appendChild(divAsientos);
-
+                    // Botón para reservar todos los asientos disponibles
                     const btnReservar = document.createElement("button");
-                    btnReservar.textContent = "Reservar asientos seleccionados";
+                    btnReservar.textContent = "Reservar todos los asientos disponibles";
                     btnReservar.style.marginTop = "10px";
+
                     btnReservar.onclick = async () => {
-                        const seleccionados = Array.from(divAsientos.querySelectorAll("button.seleccionado"))
-                            .map(b => b.textContent);
-
-                        if (seleccionados.length === 0) {
-                            alert("Selecciona al menos un asiento.");
-                            return;
-                        }
-
                         try {
-                            const resp = await fetch("/reservas", {
+                            // Obtener asientos disponibles
+                            const respAsientos = await fetch(`/asientos/${sesion.id}`, {
+                                headers: { "Authorization": `Bearer ${token}` }
+                            });
+                            const dataAsientos = await respAsientos.json();
+                            const asientosDisponibles = dataAsientos.asientos.filter(a => !a.reservado);
+                            if (asientosDisponibles.length === 0) {
+                                alert("No hay asientos disponibles para esta sesión.");
+                                return;
+                            }
+                            const asientosNumeros = asientosDisponibles.map(a => a.numero_asiento);
+                            // Crear reserva con todos los asientos disponibles
+                            const respReserva = await fetch("/reservas", {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
-                                    "Authorization": Bearer ${token}
+                                    "Authorization": `Bearer ${token}`
                                 },
                                 body: JSON.stringify({
                                     id_sesion: sesion.id,
-                                    asientos: seleccionados.join(',')
+                                    asientos: asientosNumeros.join(',')
                                 })
                             });
-                            const resJson = await resp.json();
-
-                            if (resp.ok) {
+                            const resJson = await respReserva.json();
+                            if (respReserva.ok) {
                                 alert("Reserva creada con éxito.");
-                                cargarSesionesYAsientos(idPelicula);
+                                // Redirigir a esta misma página para refrescar datos
+                                window.location.href = `pelicula.html?id=${idPelicula}`;
                             } else {
                                 alert("Error: " + (resJson.error || "No se pudo reservar"));
                             }
                         } catch (error) {
                             alert("Error en la conexión.");
+                            console.error(error);
                         }
                     };
-                    divSesion.appendChild(btnReservar);
 
+                    divSesion.appendChild(btnReservar);
                     sesionesDiv.appendChild(divSesion);
                 }
-
             } catch (error) {
-                console.error("Error al cargar sesiones o asientos:", error);
+                console.error("Error al cargar sesiones:", error);
+                const sesionesDiv = document.getElementById("sesiones");
+                sesionesDiv.innerHTML = "<p>Error al cargar sesiones.</p>";
             }
         }
 
@@ -156,7 +140,7 @@
 </head>
 <body>
     <h1 id="titulo"></h1>
-    <img id="poster" src="" alt="Cartel de la película" style="max-width:300px; margin-bottom:20px;">
+    <img id="poster" src="" alt="Cartel de la película" style="max-width:300px; margin-bottom:20px;" />
     <p><strong>Género:</strong> <span id="genero"></span></p>
     <p><strong>Duración:</strong> <span id="duracion"></span></p>
     <p><strong>Director:</strong> <span id="director"></span></p>
@@ -168,7 +152,7 @@
     <div id="sesiones"></div>
 
     <p>
-        <a href="index.html#cartelera" style="display:inline-block; margin-top: 30px; background-color:#004aad; color:white; padding:10px 15px; border-radius:5px; text-decoration:none;">
+        <a href="index.html#cartelera" style="display:inline-block; margin-top:30px; background-color:#004aad; color:white; padding:10px 15px; border-radius:5px; text-decoration:none;">
             ⬅️ Volver a la cartelera
         </a>
     </p>
