@@ -22,8 +22,8 @@
             }
 
             try {
-                const response = await fetch(`/peliculas/${id}`, {
-                    headers: { "Authorization": `Bearer ${token}` }
+                const response = await fetch(/peliculas/${id}, {
+                    headers: { "Authorization": Bearer ${token} }
                 });
                 const data = await response.json();
 
@@ -36,6 +36,8 @@
                 document.getElementById("director").textContent = pelicula.director;
                 document.getElementById("actores").textContent = pelicula.actores_principales;
 
+                cargarPoster(pelicula.titulo);
+
                 cargarSesionesYAsientos(id);
 
             } catch (error) {
@@ -46,7 +48,7 @@
 
         async function cargarPoster(titulo) {
             const apiKey = "9e446b40";
-            const url = `https://www.omdbapi.com/?t=${encodeURIComponent(titulo)}&apikey=${apiKey}`;
+            const url = https://www.omdbapi.com/?t=${encodeURIComponent(titulo)}&apikey=${apiKey};
 
             try {
                 const response = await fetch(url);
@@ -65,8 +67,8 @@
         async function cargarSesionesYAsientos(idPelicula) {
             const token = localStorage.getItem("token");
             try {
-                const responseSesiones = await fetch(`/peliculas/${idPelicula}`, {
-                    headers: { "Authorization": `Bearer ${token}` }
+                const responseSesiones = await fetch(/peliculas/${idPelicula}, {
+                    headers: { "Authorization": Bearer ${token} }
                 });
                 const dataSesiones = await responseSesiones.json();
                 const sesionesDiv = document.getElementById("sesiones");
@@ -79,10 +81,10 @@
 
                 for (const sesion of dataSesiones.sesiones) {
                     const divSesion = document.createElement("div");
-                    divSesion.innerHTML = `<h4>Sesión: 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}</h4>`;
+                    divSesion.innerHTML = <h4>Sesión: 📅 ${sesion.fecha} ⏰ ${sesion.hora} 🎬 ${sesion.sala}</h4>;
 
-                    const responseAsientos = await fetch(`/asientos/${sesion.id}`, {
-                        headers: { "Authorization": `Bearer ${token}` }
+                    const responseAsientos = await fetch(/asientos/${sesion.id}, {
+                        headers: { "Authorization": Bearer ${token} }
                     });
                     const dataAsientos = await responseAsientos.json();
 
@@ -106,7 +108,7 @@
                     const btnReservar = document.createElement("button");
                     btnReservar.textContent = "Reservar asientos seleccionados";
                     btnReservar.style.marginTop = "10px";
-                    btnReservar.onclick = () => {
+                    btnReservar.onclick = async () => {
                         const seleccionados = Array.from(divAsientos.querySelectorAll("button.seleccionado"))
                             .map(b => b.textContent);
 
@@ -115,10 +117,29 @@
                             return;
                         }
 
-                        // Guardar datos y redirigir a la página de selección avanzada
-                        localStorage.setItem("id_sesion", sesion.id);
-                        localStorage.setItem("asientos_seleccionados", JSON.stringify(seleccionados));
-                        window.location.href = "asientos.html?id_sesion=" + sesion.id;
+                        try {
+                            const resp = await fetch("/reservas", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": Bearer ${token}
+                                },
+                                body: JSON.stringify({
+                                    id_sesion: sesion.id,
+                                    asientos: seleccionados.join(',')
+                                })
+                            });
+                            const resJson = await resp.json();
+
+                            if (resp.ok) {
+                                alert("Reserva creada con éxito.");
+                                cargarSesionesYAsientos(idPelicula);
+                            } else {
+                                alert("Error: " + (resJson.error || "No se pudo reservar"));
+                            }
+                        } catch (error) {
+                            alert("Error en la conexión.");
+                        }
                     };
                     divSesion.appendChild(btnReservar);
 

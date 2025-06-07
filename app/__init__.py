@@ -49,8 +49,4 @@ def create_app():
             "asientos": [a.to_dict() for a in asientos]
         })
 
-    @app.route('/asientos.html')
-    def asientos_html():
-        return send_from_directory(os.path.join(app.root_path, 'static'), 'asientos.html')
-
     return app
