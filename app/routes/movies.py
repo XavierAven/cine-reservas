@@ -6,26 +6,17 @@ movies_bp = Blueprint('movies', __name__, url_prefix='/peliculas')
 @movies_bp.route('/', methods=['GET'])
 def get_peliculas():
     peliculas = Pelicula.query.all()
-    peliculas_list = [
-        {
-            'id': p.id,
-            'titulo': p.titulo,
-            'descripcion': p.descripcion,
-            'duracion': p.duracion,
-            'genero': p.genero
-        } for p in peliculas
-    ]
+    peliculas_list = [p.to_dict() for p in peliculas]
     return jsonify(peliculas_list)
 
-@movies_bp.route('/sesiones/<int:pelicula_id>', methods=['GET'])
-def get_sesiones(pelicula_id):
+@movies_bp.route('/<int:pelicula_id>', methods=['GET'])
+def get_pelicula_con_sesiones(pelicula_id):
+    pelicula = Pelicula.query.get(pelicula_id)
+    if not pelicula:
+        return jsonify({'error': 'Película no encontrada'}), 404
+
     sesiones = Sesion.query.filter_by(id_pelicula=pelicula_id).all()
-    sesiones_list = [
-        {
-            'id': s.id,
-            'fecha': s.fecha.strftime('%Y-%m-%d'),
-            'hora': s.hora.strftime('%H:%M'),
-            'sala': s.sala
-        } for s in sesiones
-    ]
-    return jsonify(sesiones_list)
+    return jsonify({
+        'pelicula': pelicula.to_dict(),
+        'sesiones': [s.to_dict() for s in sesiones]
+    })

@@ -46,26 +46,15 @@
             margin-top: 10px;
             font-weight: bold;
         }
-        #peliculasList li,
-        #sesionesList li {
+        #peliculasList li {
             cursor: pointer;
             margin: 6px 0;
             padding: 6px;
             border-radius: 5px;
             transition: background-color 0.2s;
         }
-        #peliculasList li:hover,
-        #sesionesList li:hover {
+        #peliculasList li:hover {
             background-color: #e0e7ff;
-        }
-        #detalleSesion {
-            margin-top: 15px;
-            background-color: #fff;
-            padding: 12px;
-            border-radius: 6px;
-            width: 320px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
-            display: none;
         }
     </style>
 </head>
@@ -88,11 +77,6 @@
     <div id="peliculasSection" style="display:none;">
         <h2>Películas</h2>
         <ul id="peliculasList"></ul>
-
-        <h3>Sesiones</h3>
-        <ul id="sesionesList"></ul>
-
-        <div id="detalleSesion"></div>
     </div>
 
     <script>
@@ -100,8 +84,6 @@
         const messageDiv = document.getElementById('message');
         const peliculasSection = document.getElementById('peliculasSection');
         const peliculasList = document.getElementById('peliculasList');
-        const sesionesList = document.getElementById('sesionesList');
-        const detalleSesion = document.getElementById('detalleSesion');
         let tokenGlobal = null;
 
         loginForm.addEventListener('submit', function(event) {
@@ -120,10 +102,9 @@
                 if (data.token) {
                     tokenGlobal = data.token;
                     localStorage.setItem('token', data.token);
-                    messageDiv.textContent = 'Login correcto! Cargando perfil...';
+                    messageDiv.textContent = 'Login correcto! Cargando cartelera...';
                     peliculasSection.style.display = 'block';
                     loginForm.style.display = 'none';
-
                     fetchPeliculas();
                 } else if (data.error) {
                     messageDiv.textContent = 'Error: ' + data.error;
@@ -140,15 +121,11 @@
             .then(response => response.json())
             .then(data => {
                 peliculasList.innerHTML = '';
-                sesionesList.innerHTML = '';
-                detalleSesion.style.display = 'none';
                 data.forEach(pelicula => {
                     const li = document.createElement('li');
                     li.textContent = `${pelicula.titulo} (${pelicula.genero})`;
-                    li.style.cursor = 'pointer';
                     li.addEventListener('click', () => {
-                        fetchSesiones(pelicula.id);
-                        detalleSesion.style.display = 'none';
+                        window.location.href = `pelicula.html?id=${pelicula.id}`;
                     });
                     peliculasList.appendChild(li);
                 });
@@ -157,43 +134,6 @@
                 messageDiv.textContent = 'Error al cargar películas';
                 console.error(error);
             });
-        }
-
-        function fetchSesiones(peliculaId) {
-            fetch(`http://68.221.131.53:5000/peliculas/sesiones/${peliculaId}`)
-            .then(response => response.json())
-            .then(data => {
-                sesionesList.innerHTML = '';
-                detalleSesion.style.display = 'none';
-
-                if (data.length === 0) {
-                    sesionesList.textContent = 'No hay sesiones para esta película.';
-                } else {
-                    data.forEach(sesion => {
-                        const li = document.createElement('li');
-                        li.textContent = `Fecha: ${sesion.fecha}, Hora: ${sesion.hora}, Sala: ${sesion.sala}`;
-                        li.style.cursor = 'pointer';
-                        li.addEventListener('click', () => {
-                            mostrarDetalleSesion(sesion);
-                        });
-                        sesionesList.appendChild(li);
-                    });
-                }
-            })
-            .catch(error => {
-                messageDiv.textContent = 'Error al cargar sesiones';
-                console.error(error);
-            });
-        }
-
-        function mostrarDetalleSesion(sesion) {
-            detalleSesion.style.display = 'block';
-            detalleSesion.innerHTML = `
-                <h4>Detalle de Sesión</h4>
-                <p><strong>Fecha:</strong> ${sesion.fecha}</p>
-                <p><strong>Hora:</strong> ${sesion.hora}</p>
-                <p><strong>Sala:</strong> ${sesion.sala}</p>
-            `;
         }
     </script>
 </body>

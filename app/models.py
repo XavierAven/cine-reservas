@@ -13,6 +13,21 @@ class Pelicula(db.Model):
     descripcion = db.Column(db.Text, nullable=False)
     duracion = db.Column(db.Integer, nullable=False)
     genero = db.Column(db.String(50), nullable=False)
+    director = db.Column(db.String(100))
+    actores_principales = db.Column(db.String(200))
+
+    sesiones = db.relationship('Sesion', backref='pelicula', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'titulo': self.titulo,
+            'descripcion': self.descripcion,
+            'duracion': self.duracion,
+            'genero': self.genero,
+            'director': self.director,
+            'actores_principales': self.actores_principales
+        }
 
 class Sesion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,6 +35,14 @@ class Sesion(db.Model):
     fecha = db.Column(db.Date, nullable=False)
     hora = db.Column(db.Time, nullable=False)
     sala = db.Column(db.String(50), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'fecha': self.fecha.strftime('%Y-%m-%d'),
+            'hora': self.hora.strftime('%H:%M'),
+            'sala': self.sala
+        }
 
 class Reserva(db.Model):
     id = db.Column(db.Integer, primary_key=True)
