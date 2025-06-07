@@ -196,7 +196,7 @@
             location.reload();
         }
 
-        // Si viene de pelicula.html, muestra directamente la cartelera
+        // Mostrar cartelera si se accede con hash #cartelera
         if (window.location.hash === "#cartelera" && localStorage.getItem("token")) {
             loginForm.style.display = 'none';
             registerForm.style.display = 'none';
